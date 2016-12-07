@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtleOrdersDao">
+
+    <resultMap id="ordersMapper" type="java.util.Map">
+        <result column="id" property="id"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="series" property="series"/>
+        <result column="ORDER_STATUS" property="orderStatus"/>
+        <result column="ORDER_NO" property="orderNo"/>
+        <result column="GROUP_NO" property="groupNo"/>
+        <result column="ORDER_CODE" property="orderCode"/>
+        <result column="PERFORM_STATUS" property="performStatus"/>
+        <result column="LAST_PERFORM_DATE_TIME" property="lastPerformDateTime"/>
+        <result column="ACTION_TYPE" property="actionType"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="ORDERS_DETAILS_TYPE" property="ordersDetailsType"/>
+        <result column="ORDERS_DETAILS" property="ordersDetails" jdbcType="CLOB" javaType="java.lang.String"
+                typeHandler="com.heren.turtle.server.core.OracleClobTypeHandler"/>
+    </resultMap>
+
+    <update id="modify" parameterType="java.util.Map">
+        UPDATE
+        MNIS_ORDERS
+        <set>
+            <if test="orderStatus!=null">
+                ORDER_STATUS=#{orderStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="performStatus!=null">
+                PERFORM_STATUS=#{performStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="lastPerformDateTime!=null">
+                LAST_PERFORM_DATE_TIME=to_date(#{lastPerformDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="updateTime!=null">
+                UPDATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="actionType!=null">
+                ACTION_TYPE=#{actionType,jdbcType=VARCHAR},
+            </if>
+            <if test="ordersDetails!=null">
+                ORDERS_DETAILS=#{ordersDetails,jdbcType=CLOB},
+            </if>
+            <if test="ordersDetailsType!=null">
+                ORDERS_DETAILS_TYPE=#{ordersDetailsType,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <where>
+            <if test="patientId!=null">
+                AND patient_id=#{patient_id,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                AND SERIES=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="orderNo!=null">
+                AND ORDER_NO=#{orderNo,jdbcType=VARCHAR}
+            </if>
+            <if test="groupNo!=null">
+                AND GROUP_NO=#{groupNo,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </update>
+
+    <insert id="add" parameterType="java.util.Map">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+            select order_auto_id.NEXTVAL from dual
+        </selectKey>
+        insert into mnis_orders
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="orderStatus!=null">
+                ORDER_STATUS,
+            </if>
+            <if test="orderNo!=null">
+                ORDER_NO,
+            </if>
+            <if test="groupNo!=null">
+                GROUP_NO,
+            </if>
+            <if test="orderCode!=null">
+                ORDER_CODE,
+            </if>
+            <if test="performStatus!=null">
+                PERFORM_STATUS,
+            </if>
+            <if test="lastPerformDateTime!=null">
+                LAST_PERFORM_DATE_TIME,
+            </if>
+            <if test="updateTime!=null">
+                UPDATE_TIME,
+            </if>
+            <if test="actionType!=null">
+                ACTION_TYPE,
+            </if>
+            <if test="ordersDetails!=null">
+                ORDERS_DETAILS,
+            </if>
+            <if test="ordersDetailsType!=null">
+                ORDERS_DETAILS_TYPE,
+            </if>
+            <if test="patientId!=null">
+                patient_id,
+            </if>
+            <if test="series!=null">
+                SERIES,
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=NUMERIC},
+            <if test="orderStatus!=null">
+                #{orderStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="orderNo!=null">
+                #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="groupNo!=null">
+                #{groupNo,jdbcType=VARCHAR},
+            </if>
+            <if test="orderCode!=null">
+                #{orderCode,jdbcType=VARCHAR},
+            </if>
+            <if test="performStatus!=null">
+                #{performStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="lastPerformDateTime!=null">
+                to_date(#{lastPerformDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="updateTime!=null">
+                to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="actionType!=null">
+                #{actionType,jdbcType=VARCHAR},
+            </if>
+            <if test="ordersDetails!=null">
+                #{ordersDetails,jdbcType=CLOB},
+            </if>
+            <if test="ordersDetailsType!=null">
+                #{ordersDetailsType,jdbcType=VARCHAR},
+            </if>
+            <if test="patientId!=null">
+                #{patientId,jdbcType=VARCHAR},
+            </if>
+            <if test="series!=null">
+                #{series,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+</mapper>

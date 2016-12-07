@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisUsersDao">
+
+    <resultMap id="usersMapper" type="java.util.Map">
+        <result column="db_user" property="dbUser"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_dept" property="userDept"/>
+        <result column="user_ward" property="userWard"/>
+    </resultMap>
+
+    <select id="queryUserDept" parameterType="java.lang.String" resultMap="usersMapper">
+        select u.db_user,
+        u.user_id,
+        u.user_name,
+        u.user_dept
+        from users u
+        <where>
+            u.user_dept not in (select dvw.ward_code from dept_dict dd,dept_vs_ward dvw where dvw.dept_code=dd.dept_code)
+        </where>
+    </select>
+
+    <select id="queryUserWard" parameterType="java.lang.String" resultMap="usersMapper">
+        select u.db_user,
+        u.user_id,
+        u.user_name,
+        u.user_dept as user_ward
+        from users u
+        <where>
+            u.user_dept in (select dvw.ward_code from dept_dict dd,dept_vs_ward dvw where dvw.dept_code=dd.dept_code)
+        </where>
+    </select>
+
+</mapper>

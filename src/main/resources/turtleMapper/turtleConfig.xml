@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtleDeptDao">
+
+    <resultMap id="configMapper" type="java.util.Map">
+        <result column="TEMPLATE_VALUE" property="templateValue" jdbcType="CLOB" javaType="java.lang.String"
+                typeHandler="com.heren.turtle.server.core.OracleClobTypeHandler"/>
+    </resultMap>
+
+    <select id="queryConfig" parameterType="java.lang.String" resultMap="configMapper">
+        SELECT
+        tt.TEMPLATE_VALUE
+        FROM T_CONFIG_SERVICE_TEMPLATE tt
+        <where>
+            and tt.status='1'
+            <if test="sysCode!=null">
+                and tt.system_code=#{sysCode,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+</mapper>

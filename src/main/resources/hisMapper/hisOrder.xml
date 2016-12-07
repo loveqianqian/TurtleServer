@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisOrderDao">
+
+    <resultMap id="orderMapper" type="java.util.Map">
+        <result column="order_no" property="orderNo"/>
+        <result column="group_no" property="groupNo"/>
+        <result column="order_code" property="orderCode"/>
+        <result column="order_name" property="orderName"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="series" property="series"/>
+        <result column="admission_id" property="admissionId"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="warde_code" property="wardeCode"/>
+        <result column="frequency_code" property="frequencyCode"/>
+        <result column="dosage" property="dosage"/>
+        <result column="dosage_units" property="dosageUnits"/>
+        <result column="supply_name" property="supplyName"/>
+        <result column="supply_code" property="supplyCode"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="order_class" property="orderClass"/>
+        <result column="order_class_name" property="orderClassName"/>
+        <result column="long_once_flag" property="longOnceFlag"/>
+        <result column="start_time" property="startTime"/>
+        <result column="enter_time" property="enterTime"/>
+        <result column="stop_time" property="stopTime"/>
+        <result column="doctor_name" property="doctorName"/>
+        <result column="stop_doctor_name" property="stopDoctorName"/>
+    </resultMap>
+
+    <select id="queryOrders" parameterType="java.util.Map" resultMap="orderMapper">
+        SELECT * from mnis_his_orders_view
+        <where>
+            <if test="items!=null">
+                AND
+                <foreach collection="items" item="item" open="ORDER_NO in (" separator="," close=")">
+                    #{item,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="orderClassItems!=null">
+                AND
+                <foreach collection="orderClassItems" item="olItems" open="ORDER_CLASS in (" separator=","
+                         close=")">
+                    #{olItems,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="supplyCodeItems!=null">
+                AND
+                <foreach collection="supplyCodeItems" item="scItems" open="SUPPLY_CODE in (" separator=","
+                         close=")">
+                    #{scItems,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="admissionId!=null">
+                and admission_id=#{admissionId,jdbcType=VARCHAR}
+            </if>
+            <if test="longOnceFlag!=null">
+                and long_once_flag=#{longOnceFlag,jdbcType=VARCHAR}
+            </if>
+            <if test="orderStatus!=null">
+                and ORDER_STATUS=#{orderStatus,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and start_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                and start_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+        </where>
+    </select>
+
+    <update id="modify" parameterType="java.util.Map">
+        UPDATE
+        orders
+        <set>
+            <if test="stopNurseId!=null">
+                STOP_NURSE=#{stopNurseId,jdbcType=VARCHAR},
+            </if>
+            <if test="orderStatus!=null">
+                ORDER_STATUS=#{orderStatus,jdbcType=VARCHAR},
+            </if>
+            <if test="stopOrderDateTime!=null">
+                STOP_DATE_TIME=to_date(#{stopOrderDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="lastPerformDateTime!=null">
+                LAST_PERFORM_DATE_TIME=to_date(#{lastPerformDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+        </set>
+        <where>
+            <if test="patientId!=null">
+                AND patient_id=#{patient_id,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                AND VISIT_ID=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="orderNo!=null">
+                AND ORDER_NO=#{orderNo,jdbcType=VARCHAR}
+            </if>
+            <if test="groupNo!=null">
+                AND ORDER_SUB_NO=#{groupNo,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </update>
+
+</mapper>

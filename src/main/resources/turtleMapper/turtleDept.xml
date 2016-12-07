@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtleDeptDao">
+
+    <resultMap id="deptMapper" type="java.util.Map">
+        <result column="ID" property="id"/>
+        <result column="SERIAL_NO" property="serialNo"/>
+        <result column="SUP_DEPT_CODE" property="supDeptCode"/>
+        <result column="DEPT_CODE" property="deptCode"/>
+        <result column="DEPT_NAME" property="deptName"/>
+        <result column="DEPT_PROFILE" property="deptProfile"/>
+        <result column="IS_HOME_PAGE" property="isHomePage"/>
+        <result column="DESCRIBE" property="describe"/>
+        <result column="DOMAIN_ID" property="domainId"/>
+        <result column="ACTION_TYPE" property="actionType"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="SPARE" property="spare"/>
+    </resultMap>
+
+    <select id="querySimple" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT
+        count(od.ID)
+        FROM OA_DEPT od
+        <where>
+            <if test="serialNo!=null">
+                AND  od.serial_no=#{serialNo,jdbcType=NUMERIC}
+            </if>
+        </where>
+        ORDER by od.UPDATE_TIME DESC
+    </select>
+
+    <select id="query" parameterType="java.util.Map" resultMap="deptMapper">
+        SELECT
+        od.ID,
+        od.SERIAL_NO,
+        od.SUP_DEPT_CODE,
+        od.DEPT_CODE,
+        od.DEPT_NAME,
+        od.DEPT_PROFILE,
+        od.IS_HOME_PAGE,
+        od.DESCRIBE,
+        od.DOMAIN_ID,
+        od.ACTION_TYPE,
+        od.UPDATE_TIME,
+        od.SPARE
+        FROM OA_DEPT od
+        <where>
+            <if test="id!=null">
+                AND  od.id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="serialNo!=null">
+                AND  od.serialNo=#{serialNo,jdbcType=NUMERIC}
+            </if>
+            <if test="deptCode!=null">
+                AND  od.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="deptProfile!=null">
+                AND  od.DEPT_PROFILE=#{deptProfile,jdbcType=VARCHAR}
+            </if>
+        </where>
+        ORDER by UPDATE_TIME DESC
+    </select>
+
+    <update id="modify" parameterType="java.util.Map">
+        UPDATE
+        OA_DEPT
+        <set>
+            <if test="supDeptCode!=null">
+                SUP_DEPT_CODE=#{supDeptCode,jdbcType=VARCHAR},
+            </if>
+            <if test="deptCode!=null">
+                dept_Code=#{deptCode,jdbcType=VARCHAR},
+            </if>
+            <if test="deptName!=null">
+                DEPT_NAME=#{deptName,jdbcType=VARCHAR},
+            </if>
+            <if test="deptProfile!=null">
+                DEPT_PROFILE=#{deptProfile,jdbcType=VARCHAR},
+            </if>
+            <if test="isHomePage!=null">
+                IS_HOME_PAGE=#{isHomePage,jdbcType=VARCHAR},
+            </if>
+            <if test="DESCRIBE!=null">
+                "DESCRIBE"=#{DESCRIBE,jdbcType=VARCHAR},
+            </if>
+            <if test="domainId!=null">
+                DOMAIN_ID=#{domainId,jdbcType=VARCHAR},
+            </if>
+            <if test="actionType!=null">
+                action_type=#{actionType,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime!=null">
+                update_time=sysdate
+            </if>
+        </set>
+        <where>
+            <if test="id!=null">
+                AND id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="serialNo!=null">
+                AND serial_no=#{serialNo,jdbcType=NUMERIC}
+            </if>
+        </where>
+    </update>
+
+    <insert id="add" parameterType="java.util.Map">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+            select dept_auto_id.NEXTVAL from dual
+        </selectKey>
+        <![CDATA[INSERT INTO OA_DEPT(
+        ID,
+        SERIAL_NO,
+        SUP_DEPT_CODE,
+        DEPT_CODE,
+        DEPT_NAME,
+        DEPT_PROFILE,
+        IS_HOME_PAGE,
+        "DESCRIBE",
+        DOMAIN_ID,
+        ACTION_TYPE,
+        UPDATE_TIME]]>
+        <if test="spare!=null">
+            ,SPARE
+        </if>
+        <![CDATA[
+        )VALUES(
+        #{id,jdbcType=NUMERIC},
+        #{serialNo,jdbcType=NUMERIC},
+        #{supDeptCode,jdbcType=VARCHAR},
+        #{deptCode,jdbcType=VARCHAR},
+        #{deptName,jdbcType=VARCHAR},
+        #{deptProfile,jdbcType=VARCHAR},
+        #{isHomePage,jdbcType=NUMERIC},
+        #{describe,jdbcType=VARCHAR},
+        #{domainId,jdbcType=VARCHAR},
+        #{actionType,jdbcType=VARCHAR},
+        sysdate]]>
+        <if test="spare!=null">
+             ,#{spare,jdbcType=VARCHAR}
+        </if>
+        )
+    </insert>
+
+</mapper>

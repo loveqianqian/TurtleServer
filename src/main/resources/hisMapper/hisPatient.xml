@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisPatientDao">
+
+    <resultMap id="patientMapper" type="java.util.Map">
+        <result column="patient_id" property="patientId"/>
+        <result column="visit_id" property="visitId"/>
+        <result column="admission_id" property="admissionId"/>
+        <result column="name" property="name"/>
+        <result column="sex" property="sex"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="ward_code" property="wardCode"/>
+        <result column="ward_name" property="wardName"/>
+        <result column="bed_no" property="bedNo"/>
+        <result column="birthday" property="birthday"/>
+        <result column="age" property="age"/>
+        <result column="phone" property="phone"/>
+        <result column="address" property="address"/>
+        <result column="professional" property="professional"/>
+        <result column="contact_info" property="contactInfo"/>
+        <result column="weight" property="weight"/>
+        <result column="height" property="height"/>
+        <result column="admission_time" property="admissionTime"/>
+        <result column="admission_ward_time" property="admissionWardTime"/>
+        <result column="discharge_time" property="dischargeTime"/>
+        <result column="diagnosis" property="diagnosis"/>
+        <result column="nursing_class" property="nursingClass"/>
+        <result column="patient_condition" property="patientCondition"/>
+        <result column="isalergy" property="isalergy"/>
+        <result column="charge_type" property="chargeType"/>
+        <result column="charge_type_name" property="chargeTypeName"/>
+        <result column="total_costs" property="totalCosts"/>
+        <result column="pre_payment" property="prePayment"/>
+        <result column="self_payment" property="selfPayment"/>
+        <result column="balance" property="balance"/>
+        <result column="arrear_flag" property="arrearFlag"/>
+        <result column="diet" property="diet"/>
+        <result column="doctor_name" property="doctorName"/>
+        <result column="status" property="status"/>
+        <result column="allergy" property="allergy"/>
+    </resultMap>
+
+    <select id="queryPatInHos" parameterType="java.util.Map" resultMap="patientMapper">
+        select pih.patient_id,
+        pih.visit_id,
+        pih.patient_id || '_' || pih.visit_id as admission_id,
+        pmi.name,
+        pmi.sex,
+        pih.dept_code,
+        (select dd.dept_name
+        from dept_dict dd
+        where dd.dept_code = pih.dept_code) as dept_name,
+        pih.ward_code,
+        (select dd.dept_name
+        from dept_dict dd
+        where dd.dept_code = pih.ward_code) as ward_name,
+        pih.bed_no,
+        to_char(pmi.date_of_birth,'yyyy-MM-dd hh24:mi:ss') as birthday,
+        -- months_between(sysdate, to_char(pmi.date_of_birth, 'yyyy-MM-dd')) / 12 as age,
+        '' as age,
+        pmi.phone_number_home as phone,
+        pmi.mailing_address as address,
+        '' as professional,
+        '' as contact_info,
+        '' as weight,
+        '' as height,
+        to_char(pih.admission_date_time,'yyyy-MM-dd hh24:mi:ss') as admission_time,
+        to_char(pih.adm_ward_date_time,'yyyy-MM-dd hh24:mi:ss') as admission_ward_time,
+        to_char(pv.discharge_date_time,'yyyy-MM-dd hh24:mi:ss') as discharge_time,
+        pih.diagnosis,
+        pih.nursing_class,
+        pih.patient_condition,
+        pv.isalergy,
+        pv.insurance_type as charge_type,
+        '' as charge_type_name,
+        pih.total_costs,
+        pih.prepayments as pre_payment,
+        pih.total_charges as self_payment,
+        '' as balance,
+        (case
+        when pih.settled_indicator = '0' then
+        '1'
+        when pih.settled_indicator = '1' then
+        '0'
+        else
+        null
+        end) as arrear_flag,
+        '' as diet,
+        pv.attending_doctor as doctor_name,
+        '住院' as status,
+        '' as allergy
+        from pats_in_hospital pih, pat_master_index pmi, pat_visit pv
+        <where>
+            and pmi.patient_id = pih.patient_id
+            and pv.patient_id = pih.patient_id
+            and pv.visit_id = pih.visit_id
+            <if test="patientId!=null and patientId!=''">
+                and pih.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null and visitId!=''">
+                and pih.visit_id=#{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null and wardCode!=''">
+                and pih.ward_code=#{wardCode,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryPatOutHos" parameterType="java.util.Arrays" resultMap="patientMapper">
+        select pv.patient_id,
+        pv.visit_id as series,
+        pv.patient_id || '_' || pv.visit_id as admission_id,
+        pmi.name,
+        pmi.sex,
+        t.dept_stayed as dept_code,
+        dd.dept_name,
+        dvw.ward_code,
+        '' ward_name,
+        '' bed_no,
+        to_char(pmi.date_of_birth,'yyyy-MM-dd hh24:mi:ss') as birthday,
+        -- months_between(sysdate, to_char(pmi.date_of_birth, 'yyyy-MM-dd')) / 12 as age,
+        '' as age,
+        pmi.phone_number_home as phone,
+        pmi.mailing_address as address,
+        '' as professional,
+        '' as contact_info,
+        '' as weight,
+        '' as height,
+        to_char( t.admission_date_time,'yyyy-MM-dd hh24:mi:ss') as admission_time,
+        '' as admission_ward_time,
+        to_char( pv.discharge_date_time,'yyyy-MM-dd hh24:mi:ss') as discharge_time,
+        '' as diagnosis,
+        '' as nursing_class,
+        '' as patient_condition,
+        pv.insurance_type as charge_type,
+        '' as charge_type_name,
+        pv.total_costs as total_costs,
+        '' pre_payment,
+        pv.total_payments self_payment,
+        '' as arrear_flag,
+        '' as diet,
+        pv.attending_doctor as doctor_name,
+        '出院' as status,
+        pv.isalergy as allergy
+        from pat_master_index pmi, pat_visit pv, adt_log al, transfer t,dept_dict dd,dept_vs_ward dvw
+        <where>
+            and pv.patient_id = pmi.patient_id
+            and al.patient_id = pmi.patient_id
+            and al.action = 'F'
+            and al.visit_id = pv.visit_id
+            and t.patient_id = pmi.patient_id
+            and t.visit_id = pv.visit_id
+            and dd.dept_code = t.dept_stayed
+            and dd.dept_code = dvw.dept_code
+            <if test="items!=null">
+                and
+                <foreach collection="items" item="item" open="admission_id in(" separator="," close=")">
+                    #{item,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

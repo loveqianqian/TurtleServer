@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtleEmpDao">
+
+    <resultMap id="empMapper" type="java.util.Map">
+        <result column="id" property="id"/>
+        <result column="serial_no" property="serialNo"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="user_name" property="userName"/>
+        <result column="eng_user_name" property="engUserName"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="simple_code" property="simpleCode"/>
+        <result column="system_permission" property="systemPermission"/>
+        <result column="ordinary_permission" property="ordinaryPermission"/>
+        <result column="enable" property="enable"/>
+        <result column="birth" property="birth"/>
+        <result column="id_card" property="idCard"/>
+        <result column="gender" property="gender"/>
+        <result column="mobile_phone" property="mobilePhone"/>
+        <result column="domain_id" property="domainId"/>
+        <result column="employee_number" property="employeeNumber"/>
+        <result column="job" property="job"/>
+        <result column="action_type" property="actionType"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="permissions" property="permissions" jdbcType="CLOB" javaType="java.lang.String"
+                typeHandler="com.heren.turtle.server.core.OracleClobTypeHandler"/>
+        <result column="spare" property="spare"/>
+    </resultMap>
+
+    <select id="querySimple" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT
+        count(oe.ID)
+        FROM OA_EMP oe
+        <where>
+            <if test="serialNo!=null">
+                AND  oe.serial_no=#{serialNo,jdbcType=NUMERIC}
+            </if>
+        </where>
+        ORDER by oe.UPDATE_TIME DESC
+    </select>
+
+    <select id="query" parameterType="java.util.Map" resultMap="empMapper">
+        SELECT
+        oe.id,
+        oe.serial_no,
+        oe.dept_code,
+        oe.user_name,
+        oe.eng_user_name,
+        oe.account,
+        oe.password,
+        oe.simple_code,
+        oe.system_permission,
+        oe.ordinary_permission,
+        oe.enable,
+        oe.birth,
+        oe.id_card,
+        oe.gender,
+        oe.mobile_phone,
+        oe.domain_id,
+        oe.employee_number,
+        oe.job,
+        oe.action_type,
+        oe.update_time,
+        oe.permissions,
+        oe.spare
+        FROM OA_EMP oe
+        <where>
+            <if test="id!=null">
+                AND  oe.id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="serialNo!=null">
+                AND  od.serial_no=#{serialNo,jdbcType=NUMERIC}
+            </if>
+            <if test="userName!=null">
+                AND  oe.user_name=#{userName,jdbcType=VARCHAR}
+            </if>
+            <if test="engUserName!=null">
+                AND  oe.eng_user_name=#{engUserName,jdbcType=VARCHAR}
+            </if>
+            <if test="simpleCode!=null">
+                AND  oe.simple_code=#{simpleCode,jdbcType=VARCHAR}
+            </if>
+            <if test="idCard!=null">
+                AND  oe.id_card=#{idCard,jdbcType=VARCHAR}
+            </if>
+        </where>
+        ORDER by UPDATE_TIME DESC
+    </select>
+
+    <update id="modify" parameterType="java.util.Map">
+        UPDATE
+        OA_EMP
+        <set>
+            <if test="serialNo!=null">
+                serial_no=#{serialNo,jdbcType=NUMERIC},
+            </if>
+            <if test="deptCode!=null">
+                dept_Code=#{deptCode,jdbcType=VARCHAR},
+            </if>
+            <if test="userName!=null">
+                user_name=#{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="engUserName!=null">
+                eng_user_name=#{engUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="account!=null">
+                account=#{account,jdbcType=VARCHAR},
+            </if>
+            <if test="password!=null">
+                password=#{password,jdbcType=VARCHAR},
+            </if>
+            <if test="simpleCode!=null">
+                simple_code=#{simpleCode,jdbcType=VARCHAR},
+            </if>
+            <if test="systemPermission!=null">
+                system_permission=#{systemPermission,jdbcType=NUMERIC},
+            </if>
+            <if test="ordinaryPermission!=null">
+                ordinary_permission=#{ordinaryPermission,jdbcType=NUMERIC},
+            </if>
+            <if test="enable!=null">
+                enable=#{enable,jdbcType=NUMERIC},
+            </if>
+            <if test="birth!=null">
+                birth=to_date(#{birth,jdbcType=VARCHAR},'yyyy-MM-dd HH24:mi:ss'),
+            </if>
+            <if test="gender!=null">
+                gender=#{gender,jdbcType=VARCHAR},
+            </if>
+            <if test="idCard!=null">
+                id_card=#{idCard,jdbcType=VARCHAR},
+            </if>
+            <if test="mobilePhone!=null">
+                mobile_phone=#{mobilePhone,jdbcType=VARCHAR},
+            </if>
+            <if test="domainId!=null">
+                domain_id=#{domainId,jdbcType=VARCHAR},
+            </if>
+            <if test="employeeNumber!=null">
+                employee_number=#{employeeNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="job!=null">
+                job=#{job,jdbcType=VARCHAR},
+            </if>
+            <if test="permissions!=null">
+                permissions=#{permissions,jdbcType=CLOB},
+            </if>
+            <if test="spare!=null">
+                spare=#{spare,jdbcType=VARCHAR},
+            </if>
+            <if test="actionType!=null">
+                action_type=#{actionType,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime!=null">
+                update_time=sysdate
+            </if>
+        </set>
+        <where>
+            <if test="id!=null">
+                AND id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="serialNo!=null">
+                AND serial_no=#{serialNo,jdbcType=NUMERIC}
+            </if>
+        </where>
+    </update>
+
+    <insert id="add" parameterType="java.util.Map">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+            select emp_auto_id.NEXTVAL from dual
+        </selectKey>
+        <![CDATA[INSERT INTO oa_emp(
+            id,
+            serial_no,
+            dept_code,
+            user_name,
+            eng_user_name,
+            account,
+            password,
+            simple_code,
+            system_permission,
+            ordinary_permission,
+            enable,
+            birth,
+            id_card,
+            gender,
+            mobile_phone,
+            domain_id,
+            employee_number,
+            job,
+            action_type,
+            update_time,
+            permissions
+            ]]>
+        <if test="spare!=null">
+            ,SPARE
+        </if>
+        <![CDATA[
+        )VALUES(
+            #{id,jdbcType=NUMERIC},
+            #{serialNo,jdbcType=NUMERIC},
+            #{deptCode,jdbcType=VARCHAR},
+            #{userName,jdbcType=VARCHAR},
+            #{engUserName,jdbcType=VARCHAR},
+            #{account,jdbcType=VARCHAR},
+            #{password,jdbcType=VARCHAR},
+            #{simpleCode,jdbcType=VARCHAR},
+            #{systemPermission,jdbcType=NUMERIC},
+            #{ordinaryPermission,jdbcType=NUMERIC},
+            #{enable,jdbcType=NUMERIC},
+            to_date(#{birth,jdbcType=VARCHAR},'yyyy-MM-dd HH24:mi:ss'),
+            #{idCard,jdbcType=VARCHAR},
+            #{gender,jdbcType=VARCHAR},
+            #{mobilePhone,jdbcType=VARCHAR},
+            #{domainId,jdbcType=VARCHAR},
+            #{employeeNumber,jdbcType=VARCHAR},
+            #{job,jdbcType=VARCHAR},
+            #{actionType,jdbcType=VARCHAR},
+            sysdate,
+            #{permissions,jdbcType=CLOB}
+        ]]>
+        <if test="spare!=null">
+            ,#{spare,jdbcType=VARCHAR}
+        </if>
+        )
+    </insert>
+</mapper>

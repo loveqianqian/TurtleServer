@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtlePioDao">
+
+    <resultMap id="pioMapper" type="java.util.Map">
+        <result column="id" property="id"/>
+        <result column="series" property="series"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="DEPT_CODE" property="deptCode"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="ACTION_TYPE" property="actionType"/>
+        <result column="MEASURE_CODE" property="measureCode"/>
+        <result column="TARGET_CODE" property="targetCode"/>
+        <result column="CAUSES_CODE" property="causesCode"/>
+        <result column="PROBLEM_CODE" property="problemCode"/>
+        <result column="PIO_DETAILS_TYPE" property="pioDetailsType"/>
+        <result column="PIO_DETAILS" property="pioDetails" jdbcType="CLOB" javaType="java.lang.String"
+                typeHandler="com.heren.turtle.server.core.OracleClobTypeHandler"/>
+    </resultMap>
+
+    <insert id="add" parameterType="java.util.Map">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+            select pio_auto_id.NEXTVAL FROM dual
+        </selectKey>
+        insert into MNIS_PIO
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            <if test="series!=null">
+                series,
+            </if>
+            <if test="patientId!=null">
+                patient_id,
+            </if>
+            <if test="deptCode!=null">
+                DEPT_CODE,
+            </if>
+            <if test="updateTime!=null">
+                UPDATE_TIME,
+            </if>
+            <if test="actionType!=null">
+                ACTION_TYPE,
+            </if>
+            <if test="pioDetails!=null">
+                PIO_DETAILS,
+            </if>
+            <if test="pioDetailsType!=null">
+                PIO_DETAILS_TYPE,
+            </if>
+            <if test="problemCode!=null">
+                PROBLEM_CODE,
+            </if>
+            <if test="causesCode!=null">
+                CAUSES_CODE,
+            </if>
+            <if test="targetCode!=null">
+                TARGET_CODE,
+            </if>
+            <if test="measureCode!=null">
+                MEASURE_CODE,
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=NUMERIC},
+            <if test="series!=null">
+                #{series,jdbcType=VARCHAR},
+            </if>
+            <if test="patientId!=null">
+                #{patientId,jdbcType=VARCHAR},
+            </if>
+            <if test="deptCode!=null">
+                #{deptCode,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime!=null">
+                to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="actionType!=null">
+                #{actionType,jdbcType=VARCHAR},
+            </if>
+            <if test="pioDetails!=null">
+                #{pioDetails,jdbcType=CLOB},
+            </if>
+            <if test="pioDetailsType!=null">
+                #{pioDetailsType,jdbcType=VARCHAR},
+            </if>
+            <if test="problemCode!=null">
+                #{problemCode,jdbcType=VARCHAR},
+            </if>
+            <if test="causesCode!=null">
+                #{causesCode,jdbcType=VARCHAR},
+            </if>
+            <if test="targetCode!=null">
+                #{targetCode,jdbcType=VARCHAR},
+            </if>
+            <if test="measureCode!=null">
+                #{measureCode,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="modify" parameterType="java.util.Map">
+        update MNIS_PIO
+        <set>
+            <if test="deptCode!=null">
+                DEPT_CODE= #{deptCode,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime!=null">
+                UPDATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="actionType!=null">
+                ACTION_TYPE= #{actionType,jdbcType=VARCHAR},
+            </if>
+            <if test="pioDetails!=null">
+                PIO_DETAILS=#{pioDetails,jdbcType=CLOB},
+            </if>
+            <if test="pioDetailsType!=null">
+                PIO_DETAILS_TYPE=#{pioDetailsType,jdbcType=VARCHAR},
+            </if>
+            <if test="problemCode!=null">
+                PROBLEM_CODE= #{problemCode,jdbcType=VARCHAR},
+            </if>
+            <if test="causesCode!=null">
+                CAUSES_CODE=#{causesCode,jdbcType=VARCHAR},
+            </if>
+            <if test="targetCode!=null">
+                TARGET_CODE=#{targetCode,jdbcType=VARCHAR},
+            </if>
+            <if test="measureCode!=null">
+                MEASURE_CODE=#{measureCode,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <where>
+            <if test="series!=null">
+                and series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="patientId!=null">
+                and patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="updateTime!=null">
+                and update_time=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+            </if>
+        </where>
+    </update>
+
+</mapper>

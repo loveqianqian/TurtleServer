@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisSignDao">
+
+    <resultMap id="hisSignMapper" type="java.util.Map">
+        <result column="series" property="series"/>
+        <result column="patient_id" property="patientId"/>
+        <result column="visit_id" property="visitId"/>
+        <result column="DEPT_CODE" property="deptCode"/>
+        <result column="PLAN_TIME" property="planTime"/>
+        <result column="RECORD_TIME" property="recordTime"/>
+        <result column="VITALSIGN_NAME" property="vitalsignName"/>
+        <result column="UPDATE_TIME" property="updateTime"/>
+        <result column="ACTION_TYPE" property="actionType"/>
+    </resultMap>
+
+    <insert id="add" parameterType="java.util.Map">
+        insert into VITAL_SIGNS_REC
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="patientId!=null">
+                patient_id,
+            </if>
+            <if test="series!=null">
+                visit_id,
+            </if>
+            <if test="recordTime!=null">
+                RECORDING_DATE,
+            </if>
+            <if test="planTime!=null">
+                TIME_POINT,
+            </if>
+            VITAL_SIGNS,
+            <if test="vitalSignName!=null">
+                VITAL_SIGNS_VALUES,
+            </if>
+            <if test="unit!=null">
+                units,
+            </if>
+            <if test="remark!=null">
+                BABY_NO,
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="patientId!=null">
+                #{patientId,jdbcType=VARCHAR},
+            </if>
+            <if test="series!=null">
+                #{series,jdbcType=VARCHAR},
+            </if>
+            <if test="recordTime!=null">
+                to_date(substr(#{recordTime,jdbcType=VARCHAR},1,10),'yyyy-MM-dd'),
+            </if>
+            <if test="planTime!=null">
+                to_date(substr(#{planTime,jdbcType=VARCHAR},1,10),'yyyy-MM-dd'),
+            </if>
+            '体重',
+            <if test="vitalSignName!=null">
+                #{vitalSignName,jdbcType=VARCHAR},
+            </if>
+            <if test="unit!=null">
+                #{unit,jdbcType=VARCHAR},
+            </if>
+            <if test="remark!=null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="modify" parameterType="java.util.Map">
+        update VITAL_SIGNS_REC
+        <set>
+            <if test="recordTime!=null">
+                RECORDING_DATE=to_date(substr(#{recordTime,jdbcType=VARCHAR},1,10),'yyyy-MM-dd'),
+            </if>
+            <if test="planTime!=null">
+                TIME_POINT=to_date(substr(#{planTime,jdbcType=VARCHAR},1,10),'yyyy-MM-dd'),
+            </if>
+            <if test="vitalSignName!=null">
+                VITAL_SIGNS_VALUES=#{vitalSignName,jdbcType=VARCHAR},
+            </if>
+            <if test="unit!=null">
+                units=#{unit,jdbcType=VARCHAR},
+            </if>
+            <if test="remark!=null">
+                baby_no= #{remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <where>
+            <if test="series!=null">
+                and visit_id=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="patientId!=null">
+                and patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="recordTime!=null">
+                and TIME_POINT=to_date(substr(#{planTime,jdbcType=VARCHAR},1,10),'yyyy-MM-dd')
+            </if>
+        </where>
+    </update>
+
+
+</mapper>
