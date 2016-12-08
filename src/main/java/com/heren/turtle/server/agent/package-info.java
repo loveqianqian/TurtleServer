@@ -12,20 +12,10 @@
  *
  */
 
-package com.heren.turtle.server.dao.turtleDao;
-
-import com.heren.turtle.server.dao.BaseDao;
-import org.apache.ibatis.annotations.Param;
-import org.springframework.stereotype.Component;
-
 /**
- * com.heren.turtle.server.dao.turtleDao
+ * com.heren.turtle.server.agent
  *
  * @author zhiwei
- * @create 2016-12-02 0:10.
+ * @create 2016-12-08 23:34.
  */
-@Component
-public interface TurtleConfigDao extends BaseDao {
-
-    String queryConfig(@Param(value = "sysCode") String sysCode);
-}
+package com.heren.turtle.server.agent;
