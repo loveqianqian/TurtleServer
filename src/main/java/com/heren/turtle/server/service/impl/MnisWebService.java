@@ -15,6 +15,7 @@
 package com.heren.turtle.server.service.impl;
 
 import com.heren.turtle.server.constant.MessageConstant;
+import com.heren.turtle.server.constant.ProtocolType;
 import com.heren.turtle.server.dao.hisDao.*;
 import com.heren.turtle.server.dao.turtleDao.TurtleOrdersDao;
 import com.heren.turtle.server.dao.turtleDao.TurtlePioDao;
@@ -681,7 +682,7 @@ public class MnisWebService extends Summoner implements MnisService {
                     queryParams.put("updateTime", params.get("update_time"));
                 }
                 queryParams.put("pioDetails", message);
-                queryParams.put("pioDetailsType", type.xml.name());
+                queryParams.put("pioDetailsType", ProtocolType.xml.name());
                 if (BooleanUtils.putMapBoolean(params, "action_type")) {
                     String actionType = String.valueOf(params.get("action_type"));
                     queryParams.put("actionType", actionType);
@@ -743,7 +744,7 @@ public class MnisWebService extends Summoner implements MnisService {
                     queryParams.put("remark", params.get("remark"));
                 }
                 queryParams.put("vitalSignDetails", message);
-                queryParams.put("vitalSignDetailsType", type.xml.name());
+                queryParams.put("vitalSignDetailsType", ProtocolType.xml.name());
                 if (BooleanUtils.putMapBoolean(params, "action_type")) {
                     String actionType = String.valueOf(params.get("action_type"));
                     queryParams.put("actionType", actionType);

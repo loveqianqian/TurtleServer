@@ -12,13 +12,26 @@
  *
  */
 
-package com.heren.turtle.server.agent;
+package com.heren.turtle.server.constant;
 
 /**
- * com.heren.turtle.server.agent
+ * com.heren.turtle.server.constant
+ *
+ * <div>
+ * <ul>
+ * <li>xml</li>
+ * <li>json</li>
+ * <li>hl7</li>
+ * <li>string</li>
+ * </ul>
+ * </div>
  *
  * @author zhiwei
- * @create 2016-12-08 23:37.
+ * @create 2016-12-09 0:01.
  */
-public interface IPatientAgent {
+public enum ProtocolType {
+    xml,
+    json,
+    hl7,
+    string
 }

@@ -14,11 +14,31 @@
 
 package com.heren.turtle.server.agent;
 
+import java.util.Map;
+
 /**
- * com.heren.turtle.server.service.impl
+ * com.heren.turtle.server.agent
  *
  * @author zhiwei
- * @create 2016-12-08 23:36.
+ * @create 2016-12-08 23:57.
  */
-public interface IOrderAgent {
+public interface IOAAgent {
+
+    /**
+     * 当OA系统用科室变化的时候，会进行增删改工作，成功返回true，失败返回false
+     *
+     * @param actionName
+     * @param params
+     * @return
+     */
+    boolean setDept(String actionName, Map<String, Object> params);
+
+    /**
+     * 当OA系统有人员变化的时候，会进行增删改工作，成功返回true，失败返回false
+     *
+     * @param actionName
+     * @param params
+     * @return
+     */
+    boolean setEmp(String actionName,Map<String, Object> params);
 }

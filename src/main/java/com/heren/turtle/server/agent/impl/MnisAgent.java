@@ -12,13 +12,15 @@
  *
  */
 
-package com.heren.turtle.server.agent;
+package com.heren.turtle.server.agent.impl;
+
+import com.heren.turtle.server.agent.IMnisAgent;
 
 /**
- * com.heren.turtle.server.agent
+ * com.heren.turtle.server.agent.impl
  *
  * @author zhiwei
- * @create 2016-12-08 23:37.
+ * @create 2016-12-09 0:05.
  */
-public interface IPioAgent {
+public class MnisAgent implements IMnisAgent {
 }

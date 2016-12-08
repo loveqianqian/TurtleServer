@@ -23,8 +23,20 @@ package com.heren.turtle.server.service;
 @javax.jws.WebService
 public interface OAService {
 
+    /**
+     * 当OA系统有科室变化的时候，主动推送科室信息，根据actionType 来进行增删改的工作
+     *
+     * @param message
+     * @return
+     */
     String setDept(String message);
 
+    /**
+     * 当OA系统有人员变化的时候，主动推送科室信息，根据actionType 来进行增删改的工作
+     *
+     * @param message
+     * @return
+     */
     String setEmp(String message);
 
 }

@@ -26,4 +26,6 @@ public class MessageConstant {
 
     public static final String timeFormatException = "time format is incorrect";
 
+    public static final String operationException = "operation failure";
+
 }

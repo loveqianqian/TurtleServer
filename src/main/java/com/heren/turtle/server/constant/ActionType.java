@@ -12,13 +12,25 @@
  *
  */
 
-package com.heren.turtle.server.agent;
+package com.heren.turtle.server.constant;
 
 /**
- * com.heren.turtle.server.agent
+ * com.heren.turtle.server.constant
  *
  * @author zhiwei
- * @create 2016-12-08 23:36.
+ * <div>
+ * <ul>
+ * <li>add-增加</li>
+ * <li>modify-改变</li>
+ * <li>discard-废弃</li>
+ * <li>invalid-不可用</li>
+ * </ul>
+ * </div>
+ * @create 2016-12-08 23:57.
  */
-public interface ISignAgent {
+public enum ActionType {
+    add,
+    modify,
+    discard,
+    invalid
 }

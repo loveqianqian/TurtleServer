@@ -17,6 +17,7 @@ package com.heren.turtle.server.service;
 import com.heren.turtle.server.utils.XmlUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -36,13 +37,6 @@ import java.util.Map;
  */
 public abstract class Summoner {
 
-    public enum type {
-        xml,
-        json,
-        hl7,
-        string
-    }
-
     public enum spells {
         add,
         modify,
@@ -50,7 +44,7 @@ public abstract class Summoner {
         invalid
     }
 
-    protected final Log logger = LogFactory.getLog(getClass());
+    protected Logger logger=Logger.getLogger(this.getClass());
 
     /**
      * get the element of actionType

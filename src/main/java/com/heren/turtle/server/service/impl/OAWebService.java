@@ -14,6 +14,8 @@
 
 package com.heren.turtle.server.service.impl;
 
+import com.heren.turtle.server.agent.IOAAgent;
+import com.heren.turtle.server.agent.impl.OAAgent;
 import com.heren.turtle.server.constant.MessageConstant;
 import com.heren.turtle.server.dao.turtleDao.TurtleDeptDao;
 import com.heren.turtle.server.dao.turtleDao.TurtleEmpDao;
@@ -36,16 +38,19 @@ import java.util.Map;
  * @create 2016-10-11 15:17.
  */
 @Component("oaWebService")
-@Transactional(readOnly = false, isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRED)
 @javax.jws.WebService(endpointInterface = "com.heren.turtle.server.service.OAService", serviceName = "oaWebService", targetNamespace = "http://service.server.turtle.heren.com/")
 public class OAWebService extends Summoner implements OAService {
 
     @Autowired
-    private TurtleEmpDao turtleEmpDao;
+    private IOAAgent oaAgent;
 
-    @Autowired
-    private TurtleDeptDao turtleDeptDao;
 
+    /**
+     * 当OA系统有科室变化的时候，主动推送科室信息，根据actionType 来进行增删改的工作
+     *
+     * @param message
+     * @return
+     */
     @Override
     public String setDept(String message) {
         this.logger.info("receive message:\n" + message);
@@ -53,17 +58,13 @@ public class OAWebService extends Summoner implements OAService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = new HashMap<>();
                 String summonName = summon(message, params);
-                if (spells.add.name().equalsIgnoreCase(summonName)) {
-                    turtleDeptDao.add(params);
+                if (oaAgent.setDept(summonName, params)) {
+                    this.logger.info("successful operation");
+                    return XmlUtils.resultMessage();
                 } else {
-                    if (turtleDeptDao.querySimple(params) == 0) {
-                        logger.info("Identification is fault.actionType is " + summonName + " ,but message were not exist");
-                        params.put("actionType", "add");
-                        turtleDeptDao.add(params);
-                    }
+                    this.logger.info("operation failure");
+                    return XmlUtils.errorMessage(MessageConstant.operationException);
                 }
-                this.logger.info("successful operation");
-                return XmlUtils.resultMessage();
             } else {
                 this.logger.info(MessageConstant.formatFailed);
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
@@ -74,6 +75,12 @@ public class OAWebService extends Summoner implements OAService {
         }
     }
 
+    /**
+     * 当OA系统有人员变化的时候，主动推送科室信息，根据actionType 来进行增删改的工作
+     *
+     * @param message
+     * @return
+     */
     @Override
     public String setEmp(String message) {
         this.logger.info("receive message:\n" + message);
@@ -81,17 +88,13 @@ public class OAWebService extends Summoner implements OAService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = new HashMap<>();
                 String summonName = summon(message, params);
-                if (spells.add.name().equalsIgnoreCase(summonName)) {
-                    turtleEmpDao.add(params);
+                if (oaAgent.setEmp(summonName, params)) {
+                    this.logger.info("successful operation");
+                    return XmlUtils.resultMessage();
                 } else {
-                    if (turtleEmpDao.querySimple(params) == 0) {
-                        logger.info("Identification is fault.actionType is " + summonName + " ,but message were not exist");
-                        params.put("actionType", "add");
-                        turtleEmpDao.add(params);
-                    }
+                    this.logger.info("operation failure");
+                    return XmlUtils.errorMessage(MessageConstant.operationException);
                 }
-                this.logger.info("successful operation");
-                return XmlUtils.resultMessage();
             } else {
                 this.logger.info(MessageConstant.formatFailed);
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
@@ -101,5 +104,4 @@ public class OAWebService extends Summoner implements OAService {
             return XmlUtils.errorMessage(e.getMessage());
         }
     }
-
 }
