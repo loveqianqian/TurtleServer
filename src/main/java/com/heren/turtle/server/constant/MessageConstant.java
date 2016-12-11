@@ -28,4 +28,8 @@ public class MessageConstant {
 
     public static final String operationException = "operation failure";
 
+    public static final String save_failed = "save failed";
+
+    public static final String sql_save_failed = "sql save failed";
+
 }

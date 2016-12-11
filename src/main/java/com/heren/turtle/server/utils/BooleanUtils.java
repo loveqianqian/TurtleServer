@@ -14,6 +14,9 @@
 
 package com.heren.turtle.server.utils;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,12 +28,24 @@ import java.util.Map;
 public class BooleanUtils {
 
     /**
-     *
      * @param params
      * @param key
      * @return
      */
     public static boolean putMapBoolean(Map<String, Object> params, String key) {
         return params.containsKey(key) && !params.get(key).equals("");
+    }
+
+    public static Map<String, Object> putMapBooleanList(Map<String, Object> params, String... keys) {
+        Map<String, Object> resultMap = new HashMap<>();
+        Arrays.asList(keys).stream()
+              .filter(key -> params.containsKey(key) && !params.get(key).equals(""))
+              .forEach(key -> resultMap.put(change(key), params.get(key)));
+        return resultMap;
+    }
+
+    private static String change(String param) {
+        String[] split = param.split("_");
+        return split[0] + split[1].substring(0, 1).toUpperCase() + split[1].substring(1);
     }
 }

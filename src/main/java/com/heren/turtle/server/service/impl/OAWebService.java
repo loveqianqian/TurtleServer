@@ -53,7 +53,7 @@ public class OAWebService extends Summoner implements OAService {
      */
     @Override
     public String setDept(String message) {
-        this.logger.info("receive message:\n" + message);
+        this.logger.info("setDept receive message:\n" + message);
         try {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = new HashMap<>();
@@ -83,7 +83,7 @@ public class OAWebService extends Summoner implements OAService {
      */
     @Override
     public String setEmp(String message) {
-        this.logger.info("receive message:\n" + message);
+        this.logger.info("setEmp receive message:\n" + message);
         try {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = new HashMap<>();

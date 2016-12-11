@@ -15,16 +15,12 @@
 package com.heren.turtle.server.service;
 
 import com.heren.turtle.server.utils.XmlUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.springframework.jdbc.support.nativejdbc.JBossNativeJdbcExtractor;
 
-import javax.smartcardio.TerminalFactory;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;

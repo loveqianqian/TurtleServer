@@ -14,6 +14,10 @@
 
 package com.heren.turtle.server.agent;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * com.heren.turtle.server.agent
  *
@@ -21,4 +25,90 @@ package com.heren.turtle.server.agent;
  * @create 2016-12-09 0:05.
  */
 public interface IMnisAgent {
+
+    /**
+     * 通过科室代码查找科室
+     *
+     * @param deptCode
+     * @return
+     */
+    List<Map<String, Object>> getDept(String deptCode);
+
+    /**
+     * 通过病区代码查找病区信息
+     *
+     * @param wardCode
+     * @return
+     */
+    List<Map<String, Object>> getWard(String wardCode);
+
+    /**
+     * 通过userId查找用户信息
+     *
+     * @param userId
+     * @return
+     */
+    List<Map<String, Object>> getUserInfo(String userId, Map<String, Object> params);
+
+    /**
+     * 通过参数查找在院病人信息
+     *
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getPatInHos(Map<String, Object> params);
+
+
+    /**
+     * 通过参数朝找出院病人信息
+     *
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getPatOutHos(List<String> params);
+
+    /**
+     * 通过参数找出转院转科信息
+     *
+     * @param outStartTime
+     * @param outEndTime
+     * @param patientId
+     * @param visitId
+     * @return
+     */
+    List<Map<String, Object>> getTurnDeptTurnBed(String outStartTime, String outEndTime, String patientId, String visitId);
+
+    /**
+     * 通过参数找出医嘱信息
+     *
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getOrder(Map<String, Object> params);
+
+    /**
+     * 通过参数回写医嘱信息
+     *
+     * @param params
+     * @return
+     */
+    boolean writebackOrder(Map<String, Object> params);
+
+    /**
+     * 通过参数回写pio信息
+     *
+     * @param params
+     * @return
+     */
+    boolean writebackPio(Map<String, Object> params);
+
+    /**
+     * 通过参数回写体征信息
+     *
+     * @param params
+     * @return
+     */
+    boolean writebackSign(Map<String, Object> params);
+
+
 }
