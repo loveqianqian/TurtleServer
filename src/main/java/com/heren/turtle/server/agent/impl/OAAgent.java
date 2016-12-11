@@ -18,7 +18,6 @@ import com.heren.turtle.server.agent.IOAAgent;
 import com.heren.turtle.server.constant.ActionType;
 import com.heren.turtle.server.dao.turtleDao.TurtleDeptDao;
 import com.heren.turtle.server.dao.turtleDao.TurtleEmpDao;
-import com.heren.turtle.server.service.Summoner;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
