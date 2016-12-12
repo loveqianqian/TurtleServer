@@ -14,5 +14,6 @@ http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd http://www.s
 
     <jaxws:endpoint implementor="#oaWebService" address="/oaWebService"/>
     <jaxws:endpoint implementor="#mnisWebService" address="/mnisWebService"/>
+    <jaxws:endpoint implementor="#niWebService" address="/niWebService"/>
 
 </beans>

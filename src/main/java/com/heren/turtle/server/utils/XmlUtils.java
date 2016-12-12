@@ -15,9 +15,6 @@
 package com.heren.turtle.server.utils;
 
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import org.aspectj.weaver.ast.Var;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -191,6 +188,36 @@ public class XmlUtils {
             }
         }
         return result;
+    }
+
+    /**
+     * @param params
+     * @return
+     */
+    public static String createResultMessage(List<Map<String, Object>> params) throws Exception {
+        Document document;
+        if (params != null && params.size() > 0) {
+            document = DocumentHelper.createDocument();
+            Element root = document.addElement("payload");
+            Element response = root.addElement("response");
+            Element items = response.addElement("items");
+            for (Map<String, Object> param : params) {
+                Element item = items.addElement("item");
+                param.keySet().stream().forEach(key -> {
+                    Element element = item.addElement(key);
+                    element.setText(String.valueOf(param.get(key)));
+                });
+            }
+            Element userId = response.addElement("user_id");
+            userId.setText("0001");
+        } else {
+            document = DocumentHelper.createDocument();
+            Element root = document.addElement("payload");
+            Element response = root.addElement("response");
+            Element userId = response.addElement("user_id");
+            userId.setText("0001");
+        }
+        return document.asXML();
     }
 
 }

@@ -120,4 +120,25 @@
         </where>
     </update>
 
+    <resultMap id="orderNiMapper" type="java.util.Map">
+        <result column="order_no" property="req_no"/>
+        <result column="group_no" property="patient_id"/>
+        <result column="order_code" property="in_hos_sum"/>
+        <result column="order_name" property="doc_adv_no"/>
+        <result column="patient_id" property="doc_advice"/>
+        <result column="series" property="beg_time"/>
+        <result column="admission_id" property="end_time"/>
+        <result column="dept_code" property="end_time"/>
+        <result column="warde_code" property="dosage"/>
+        <result column="frequency_code" property="dos_unit"/>
+        <result column="dosage" property="doc_adv_type"/>
+        <result column="dosage_units" property="doctor"/>
+        <result column="supply_name" property="doctor_no"/>
+        <result column="supply_code" property="dist_no"/>
+    </resultMap>
+
+    <select id="queryNiOrder" resultMap="orderNiMapper" parameterType="java.util.Map">
+
+    </select>
+
 </mapper>

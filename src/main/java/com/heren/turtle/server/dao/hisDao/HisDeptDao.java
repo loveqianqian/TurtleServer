@@ -86,4 +86,17 @@ public interface HisDeptDao extends BaseDao {
                                             @Param(value = "patientId") String patientId,
                                             @Param(value = "visitId") String visitId);
 
+
+    /**
+     * @param deptCode
+     * @return
+     */
+    List<Map<String, Object>> queryNIDept(@Param(value = "deptCode") String deptCode);
+
+    /**
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> queryNiTransfer(Map<String, Object> params);
+
 }

@@ -180,4 +180,37 @@
         </where>
     </select>
 
+    <resultMap id="patMap" type="java.util.Map">
+        <result column="patient_id" property="req_no"/>
+        <result column="visit_id" property="hos_name"/>
+        <result column="admission_id" property="pat_type"/>
+        <result column="admission_id" property="patient_id"/>
+        <result column="admission_id" property="in_hos_sum"/>
+        <result column="admission_id" property="pat_name"/>
+        <result column="admission_id" property="sex"/>
+        <result column="admission_id" property="age"/>
+        <result column="admission_id" property="age_unit"/>
+        <result column="admission_id" property="id_no"/>
+        <result column="admission_id" property="birth_day"/>
+        <result column="admission_id" property="current_dept"/>
+        <result column="admission_id" property="current_dist"/>
+        <result column="admission_id" property="ward_no"/>
+        <result column="admission_id" property="bed_no"/>
+        <result column="admission_id" property="doctor_in_charge"/>
+        <result column="admission_id" property="in_hos_doc"/>
+        <result column="admission_id" property="in_hos_date"/>
+        <result column="admission_id" property="out_hos_date"/>
+        <result column="admission_id" property="in_hos_time"/>
+        <result column="admission_id" property="disease_lapse"/>
+        <result column="admission_id" property="in_hos_dept"/>
+        <result column="admission_id" property="in_hos_dist"/>
+        <result column="admission_id" property="phone_number_home"/>
+        <result column="admission_id" property="mailing_address"/>
+        <result column="admission_id" property="inp_no"/>
+    </resultMap>
+
+    <select id="queryNIPatient" resultMap="patMap" parameterType="java.util.Map">
+
+    </select>
+
 </mapper>

@@ -50,4 +50,25 @@
         </where>
     </select>
 
+    <resultMap id="empMap" type="java.util.Map">
+        <result column="emp_no" property="emp_no"/>
+        <result column="name" property="emp_name"/>
+        <result column="input_code" property="input_code"/>
+        <result column="dept_code" property="dept_code"/>
+        <result column="title" property="place_name"/>
+        <result column="dept_name" property="dept_name"/>
+    </resultMap>
+
+    <select id="queryNiEmp" parameterType="java.util.Map" resultMap="empMap">
+        SELECT
+            sd.emp_no,
+            sd.name,
+            sd.input_code,
+            sd.dept_code,
+            sd.title,
+            dd.dept_name
+        FROM staff_dict sd, dept_dict dd
+        WHERE sd.dept_code = dd.dept_code (+)
+    </select>
+
 </mapper>

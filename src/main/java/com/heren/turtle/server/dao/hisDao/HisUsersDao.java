@@ -31,4 +31,6 @@ public interface HisUsersDao extends BaseDao {
 
     List<Map<String, Object>> queryUserWard(@Param(value = "userId") String userId);
 
+    List<Map<String, Object>> queryNiEmp(Map<String, Object> params);
+
 }

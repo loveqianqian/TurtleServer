@@ -15,36 +15,20 @@
 package com.heren.turtle.server.dao.hisDao;
 
 import com.heren.turtle.server.dao.BaseDao;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * com.heren.turtle.server.dao
+ * com.heren.turtle.server.dao.hisDao
  *
  * @author zhiwei
- * @create 2016-11-03 11:11.
+ * @create 2016-11-26 0:08.
  */
-@Component("hisPatientDao")
-public interface HisPatientDao extends BaseDao {
+@Component
+public interface HisDiagnosisDao extends BaseDao {
 
-    /**
-     * 查询在院病人
-     *
-     * @param params
-     * @return
-     */
-    List<Map<String, Object>> queryPatInHos(Map<String, Object> params);
+    List<Map<String, Object>> queryNiDiagnosis(Map<String, Object> params);
 
-    /**
-     * 查询出院病人
-     *
-     * @param items
-     * @return
-     */
-    List<Map<String, Object>> queryPatOutHos(@Param(value = "items") List<String> items);
-
-    List<Map<String, Object>> queryNIPatient(Map<String, Object> params);
 }

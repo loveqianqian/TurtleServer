@@ -191,4 +191,40 @@
         </where>
     </select>
 
+    <resultMap id="deptMap" type="java.util.Map">
+        <result column="dept_code" property="dept_code"/>
+        <result column="dept_name" property="dept_name"/>
+        <result column="serial_no" property="serial_no"/>
+        <result column="dept_alias" property="dis_play_name"/>
+        <result column="internal_or_sergery" property="dept_class"/>
+    </resultMap>
+
+
+    <select id="queryNIDept" resultMap="deptMap" parameterType="java.lang.String">
+        SELECT
+            dd.dept_code,
+            dd.dept_name,
+            dd.serial_no,
+            dd.dept_alias,
+            decode(dd.internal_or_sergery, '0', '内科', '1', '外科', '9', '其他', '兼备') AS internal_or_sergery
+        FROM dept_dict dd
+        WHERE dd.clinic_attr NOT IN ('3')
+    </select>
+
+    <resultMap id="transMap" type="java.util.Map">
+        <result column="ward_code" property="req_no"/>
+        <result column="ward_name" property="patient_id"/>
+        <result column="DEPT_CODE" property="in_hos_sum"/>
+        <result column="dept_name" property="out_dept_no"/>
+        <result column="log_date_time" property="out_dpet_name"/>
+        <result column="patient_id" property="out_dept_date"/>
+        <result column="patient_id" property="in_dept_no"/>
+        <result column="patient_id" property="in_dept_name"/>
+        <result column="patient_id" property="in_dept_date"/>
+    </resultMap>
+
+    <select id="queryNiTransfer" resultMap="transMap" parameterType="java.util.Map">
+
+    </select>
+
 </mapper>
