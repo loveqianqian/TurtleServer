@@ -14,29 +14,21 @@
 
 package com.heren.turtle.server.service.impl;
 
-import com.heren.turtle.server.agent.impl.MnisAgent;
+import com.heren.turtle.server.agent.IMnisAgent;
 import com.heren.turtle.server.constant.MessageConstant;
 import com.heren.turtle.server.constant.ProtocolType;
-import com.heren.turtle.server.dao.hisDao.*;
-import com.heren.turtle.server.dao.turtleDao.TurtleOrdersDao;
-import com.heren.turtle.server.dao.turtleDao.TurtlePioDao;
-import com.heren.turtle.server.dao.turtleDao.TurtleSignDao;
 import com.heren.turtle.server.exception.LackElementException;
 import com.heren.turtle.server.service.MnisService;
 import com.heren.turtle.server.service.Summoner;
-import com.heren.turtle.server.utils.*;
-import org.apache.commons.lang3.time.DateUtils;
+import com.heren.turtle.server.utils.BooleanUtils;
+import com.heren.turtle.server.utils.XmlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-
-import static com.heren.turtle.server.service.Summoner.spells.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * com.heren.turtle.service.service.impl
@@ -49,7 +41,7 @@ import static com.heren.turtle.server.service.Summoner.spells.*;
 public class MnisWebService extends Summoner implements MnisService {
 
     @Autowired
-    private MnisAgent mnisAgent;
+    private IMnisAgent mnisAgent;
 
     @Override
     public String getDept(String message) {

@@ -121,24 +121,56 @@
     </update>
 
     <resultMap id="orderNiMapper" type="java.util.Map">
-        <result column="order_no" property="req_no"/>
-        <result column="group_no" property="patient_id"/>
-        <result column="order_code" property="in_hos_sum"/>
-        <result column="order_name" property="doc_adv_no"/>
-        <result column="patient_id" property="doc_advice"/>
-        <result column="series" property="beg_time"/>
-        <result column="admission_id" property="end_time"/>
-        <result column="dept_code" property="end_time"/>
-        <result column="warde_code" property="dosage"/>
-        <result column="frequency_code" property="dos_unit"/>
-        <result column="dosage" property="doc_adv_type"/>
-        <result column="dosage_units" property="doctor"/>
-        <result column="supply_name" property="doctor_no"/>
-        <result column="supply_code" property="dist_no"/>
+        <result column="req_no" property="req_no"/>
+        <result column="patient_id" property="patient_id"/>
+        <result column="visit_id" property="in_hos_sum"/>
+        <result column="doc_adv_no" property="doc_adv_no"/>
+        <result column="order_text" property="doc_advice"/>
+        <result column="start_date_time" property="beg_time"/>
+        <result column="stop_date_time" property="end_time"/>
+        <result column="administration" property="exe_mode"/>
+        <result column="dosage" property="dosage"/>
+        <result column="dosage_units" property="dos_unit"/>
+        <result column="repeat_indicator" property="doc_adv_type"/>
+        <result column="doctor" property="doctor"/>
+        <result column="ordering_dept" property="dist_no"/>
     </resultMap>
 
     <select id="queryNiOrder" resultMap="orderNiMapper" parameterType="java.util.Map">
-
+        SELECT
+        o.patient_id || '_' || o.visit_id AS req_no,
+        o.patient_id,
+        o.visit_id,
+        o.order_no || '_' || o.order_sub_no AS doc_adv_no,
+        o.order_text,
+        to_char(o.start_date_time, 'yyyy-MM-dd hh24:mi:ss'),
+        (CASE
+        WHEN o.stop_date_time IS NULL AND o.repeat_indicator = '1'
+        THEN '1900-01-01 00:00:00'
+        ELSE
+        to_char(o.stop_date_time, 'yyyy-MM-dd hh24:mi:ss')
+        END) AS stop_date_time,
+        o.administration,
+        o.dosage,
+        o.dosage_units,
+        decode(o.repeat_indicator, 1, '长期', 0, '临时') AS repeat_indicator,
+        o.doctor,
+        o.ordering_dept
+        FROM orders o
+        <where>
+            <if test="patientId!=null">
+                AND patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                AND VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and start_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                and start_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+        </where>
     </select>
 
 </mapper>

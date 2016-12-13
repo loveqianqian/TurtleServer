@@ -15,11 +15,9 @@
 package com.heren.turtle.server.agent.impl;
 
 import com.heren.turtle.server.agent.INIAgent;
-import com.heren.turtle.server.agent.IOAAgent;
-import com.heren.turtle.server.constant.ActionType;
 import com.heren.turtle.server.dao.hisDao.*;
-import com.heren.turtle.server.dao.turtleDao.TurtleDeptDao;
-import com.heren.turtle.server.dao.turtleDao.TurtleEmpDao;
+import com.heren.turtle.server.utils.ConversionUtils;
+import com.heren.turtle.server.utils.TransUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -55,8 +53,10 @@ public class NIAgent implements INIAgent {
     @Autowired
     private HisUsersDao hisUsersDao;
 
-    private Logger logger = Logger.getLogger(this.getClass());
+    @Autowired
+    private TransUtils transUtils;
 
+    private Logger logger = Logger.getLogger(this.getClass());
 
     /**
      * 当需要科室数据的时候调用
@@ -67,8 +67,14 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getDept(String deptCode) {
+        logger.info("getDept params:" + deptCode);
         List<Map<String, Object>> resultList = hisDeptDao.queryNIDept(deptCode);
-        return null;
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("dept_css", "nullValue");
+        }
+        return resultList;
     }
 
     /**
@@ -80,8 +86,13 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getEmp(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("getEmp params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> resultList = hisUsersDao.queryNiEmp(params);
-        return null;
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+        }
+        return resultList;
     }
 
     /**
@@ -93,8 +104,13 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPatient(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("getPatient params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> resultList = hisPatientDao.queryNIPatient(params);
-        return null;
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+        }
+        return resultList;
     }
 
     /**
@@ -106,8 +122,19 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getOrders(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("getOrders params:" + key + ":" + params.get(key)));
+        if (params.containsKey("reqNo")) {
+            String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
         List<Map<String, Object>> resultList = hisOrderDao.queryNiOrder(params);
-        return null;
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("doctor_no", "nullValue");
+        }
+        return resultList;
     }
 
     /**
@@ -119,8 +146,18 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getTransfer(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("getTransfer params:" + key + ":" + params.get(key)));
+        if (params.containsKey("reqNo")) {
+            String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
         List<Map<String, Object>> resultList = hisDeptDao.queryNiTransfer(params);
-        return null;
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+        }
+        return resultList;
     }
 
     /**
@@ -132,7 +169,20 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getDiagnosis(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("getDiagnosis params:" + key + ":" + params.get(key)));
+        if (params.containsKey("reqNo")) {
+            String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
         List<Map<String, Object>> resultList = hisDiagnosisDao.queryNiDiagnosis(params);
-        return null;
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("diag_doc", "nullValue");
+            resultMap.put("diag_docno", "nullValue");
+            resultMap.put("outhostext","nullValue");
+        }
+        return resultList;
     }
 }

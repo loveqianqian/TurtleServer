@@ -21,21 +21,43 @@
 <mapper namespace="com.heren.turtle.server.dao.hisDao.HisDiagnosisDao">
 
     <resultMap id="diagnosisMap" type="java.util.Map">
-        <result column="series" property="req_no"/>
+        <result column="req_no" property="req_no"/>
         <result column="patient_id" property="patient_id"/>
         <result column="visit_id" property="in_hos_sum"/>
-        <result column="DEPT_CODE" property="phase"/>
-        <result column="PLAN_TIME" property="diag_id"/>
-        <result column="RECORD_TIME" property="diag_name"/>
-        <result column="VITALSIGN_NAME" property="outhostext"/>
-        <result column="UPDATE_TIME" property="icd_code"/>
-        <result column="ACTION_TYPE" property="diag_time"/>
-        <result column="ACTION_TYPE" property="diag_doc"/>
-        <result column="ACTION_TYPE" property="diag_docno"/>
+        <result column="diagnosis_type" property="phase"/>
+        <result column="diagnosis_no" property="diag_id"/>
+        <result column="diagnosis_desc" property="diag_name"/>
+        <result column="diagnosis_code" property="icd_code"/>
+        <result column="diagnosis_date" property="diag_time"/>
     </resultMap>
 
     <select id="queryNiDiagnosis" resultMap="diagnosisMap" parameterType="java.util.Map">
-
+        SELECT
+        d.patient_id || '_' || d.visit_id as req_no,
+        d.patient_id,
+        d.visit_id,
+        d.diagnosis_type,
+        d.diagnosis_no,
+        d.diagnosis_desc,
+        dc.diagnosis_code,
+        to_char(d.diagnosis_date,'yyyy-MM-dd hh24:mi:ss') as diagnosis_date
+        FROM diagnosis d, diagnostic_category dc
+        <where>
+            and d.patient_id = dc.patient_id
+            AND d.visit_id = dc.visit_id
+            <if test="patientId!=null">
+                AND d.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                AND d.VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and d.diagnosis_date &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                and d.diagnosis_date &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+        </where>
     </select>
 
 

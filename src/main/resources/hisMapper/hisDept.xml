@@ -202,29 +202,62 @@
 
     <select id="queryNIDept" resultMap="deptMap" parameterType="java.lang.String">
         SELECT
-            dd.dept_code,
-            dd.dept_name,
-            dd.serial_no,
-            dd.dept_alias,
-            decode(dd.internal_or_sergery, '0', '内科', '1', '外科', '9', '其他', '兼备') AS internal_or_sergery
+        dd.dept_code,
+        dd.dept_name,
+        dd.serial_no,
+        dd.dept_alias,
+        decode(dd.internal_or_sergery, '0', '内科', '1', '外科', '9', '其他', '兼备') AS internal_or_sergery
         FROM dept_dict dd
-        WHERE dd.clinic_attr NOT IN ('3')
+        <where>
+            and dd.clinic_attr NOT IN ('3')
+            <if test="deptCode!=null">
+                and dd.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
     <resultMap id="transMap" type="java.util.Map">
-        <result column="ward_code" property="req_no"/>
-        <result column="ward_name" property="patient_id"/>
-        <result column="DEPT_CODE" property="in_hos_sum"/>
-        <result column="dept_name" property="out_dept_no"/>
-        <result column="log_date_time" property="out_dpet_name"/>
-        <result column="patient_id" property="out_dept_date"/>
-        <result column="patient_id" property="in_dept_no"/>
-        <result column="patient_id" property="in_dept_name"/>
-        <result column="patient_id" property="in_dept_date"/>
+        <result column="req_no" property="req_no"/>
+        <result column="patient_id" property="patient_id"/>
+        <result column="visit_id" property="in_hos_sum"/>
+        <result column="dept_stayed" property="out_dept_no"/>
+        <result column="out_dpet_name" property="out_dpet_name"/>
+        <result column="admission_date_time" property="out_dept_date"/>
+        <result column="dept_transfered_to" property="in_dept_no"/>
+        <result column="in_dept_name" property="in_dept_name"/>
+        <result column="discharge_date_time" property="in_dept_date"/>
     </resultMap>
 
     <select id="queryNiTransfer" resultMap="transMap" parameterType="java.util.Map">
-
+        SELECT
+        t.patient_id || '_' || t.visit_id AS req_no,
+        t.patient_id,
+        t.visit_id,
+        t.dept_stayed,
+        (SELECT dept_name
+        FROM dept_dict dd
+        WHERE dd.dept_code = t.dept_stayed) AS out_dpet_name,
+        to_char(t.admission_date_time, 'yyyy-MM-dd hh24:mi:ss') AS admission_date_time,
+        t.dept_transfered_to,
+        (SELECT dept_name
+        FROM dept_dict dd
+        WHERE dd.dept_code = t.dept_transfered_to) AS in_dept_name,
+        to_char(t.discharge_date_time, 'yyyy-MM-dd hh24:mi:ss') AS discharge_date_time
+        FROM transfer t
+        <where>
+            <if test="patientId!=null">
+                AND t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                AND t.VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and t.admission_date_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                and t.admission_date_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+        </where>
     </select>
 
 </mapper>

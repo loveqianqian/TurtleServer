@@ -68,7 +68,15 @@
             sd.title,
             dd.dept_name
         FROM staff_dict sd, dept_dict dd
-        WHERE sd.dept_code = dd.dept_code (+)
+        <where>
+            and sd.dept_code = dd.dept_code (+)
+            <if test="empNo!=null">
+                and sd.emp_no=#{empNo,jdbcType=VARCHAR}
+            </if>
+            <if test="deptCode!=null">
+                and sd.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
 </mapper>
