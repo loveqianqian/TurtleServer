@@ -56,35 +56,23 @@ public interface HisDeptDao extends BaseDao {
      *
      * @return
      */
-    List<Map<String, Object>> queryOnlyWard(@Param(value = "wardCode") String wardCode);
+    List<Map<String, Object>> queryOnlyWard(Map<String, Object> params);
 
 
     /**
      * query the patients who transferred the bed label
      *
-     * @param outStartTime
-     * @param outEndTime
-     * @param patientId
-     * @param visitId
+     * @param params
      * @return
      */
-    List<Map<String, Object>> queryTransBed(@Param(value = "outStartTime") String outStartTime,
-                                            @Param(value = "outEndTime") String outEndTime,
-                                            @Param(value = "patientId") String patientId,
-                                            @Param(value = "visitId") String visitId);
+    List<Map<String, Object>> queryTransBed(Map<String, Object> params);
 
 
     /**
-     * @param outStartTime
-     * @param outEndTime
-     * @param patientId
-     * @param visitId
+     * @param params
      * @return
      */
-    List<Map<String, Object>> queryTransfer(@Param(value = "outStartTime") String outStartTime,
-                                            @Param(value = "outEndTime") String outEndTime,
-                                            @Param(value = "patientId") String patientId,
-                                            @Param(value = "visitId") String visitId);
+    List<Map<String, Object>> queryTransfer(Map<String, Object> params);
 
 
     /**

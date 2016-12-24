@@ -21,32 +21,50 @@
 <mapper namespace="com.heren.turtle.server.dao.hisDao.HisUsersDao">
 
     <resultMap id="usersMapper" type="java.util.Map">
-        <result column="db_user" property="dbUser"/>
-        <result column="user_id" property="userId"/>
-        <result column="user_name" property="userName"/>
-        <result column="user_dept" property="userDept"/>
-        <result column="user_ward" property="userWard"/>
+        <result column="user_id" property="user_code"/>
+        <result column="login_id" property="login_id"/>
+        <result column="user_name" property="name"/>
+        <result column="user_dept" property="dept_code"/>
+        <result column="user_ward" property="ward_code"/>
     </resultMap>
 
-    <select id="queryUserDept" parameterType="java.lang.String" resultMap="usersMapper">
-        select u.db_user,
+    <select id="queryUserDept" parameterType="java.util.Map" resultMap="usersMapper">
+        select
         u.user_id,
+        u.user_id as login_id,
         u.user_name,
         u.user_dept
         from users u
         <where>
-            u.user_dept not in (select dvw.ward_code from dept_dict dd,dept_vs_ward dvw where dvw.dept_code=dd.dept_code)
+            <if test="deptCode!=null">
+                and u.user_dept=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="userCode!=null">
+                and u.user_id=#{userCode,jdbcType=VARCHAR}
+            </if>
+            and u.user_dept not in (select dvw.ward_code from dept_vs_ward dvw)
         </where>
     </select>
 
-    <select id="queryUserWard" parameterType="java.lang.String" resultMap="usersMapper">
-        select u.db_user,
+    <select id="queryUserWard" parameterType="java.util.Map" resultMap="usersMapper">
+        select
         u.user_id,
+        u.user_id as login_id,
         u.user_name,
         u.user_dept as user_ward
         from users u
         <where>
-            u.user_dept in (select dvw.ward_code from dept_dict dd,dept_vs_ward dvw where dvw.dept_code=dd.dept_code)
+            and u.user_dept in (
+            select dvw.ward_code
+            from dept_vs_ward dvw
+            <where>
+                <if test="deptCode!=null">
+                    and u.user_dept=#{deptCode,jdbcType=VARCHAR}
+                </if>
+            </where>)
+            <if test="userCode!=null">
+                and u.user_id=#{userCode,jdbcType=VARCHAR}
+            </if>
         </where>
     </select>
 
@@ -61,12 +79,12 @@
 
     <select id="queryNiEmp" parameterType="java.util.Map" resultMap="empMap">
         SELECT
-            sd.emp_no,
-            sd.name,
-            sd.input_code,
-            sd.dept_code,
-            sd.title,
-            dd.dept_name
+        sd.emp_no,
+        sd.name,
+        sd.input_code,
+        sd.dept_code,
+        sd.title,
+        dd.dept_name
         FROM staff_dict sd, dept_dict dd
         <where>
             and sd.dept_code = dd.dept_code (+)

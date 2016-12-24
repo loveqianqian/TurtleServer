@@ -68,6 +68,7 @@
             <if test="vitalSignDetailsType!=null">
                 VITALSIGN_DETAILS_TYPE,
             </if>
+            action_date
         </trim>
         VALUES
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -88,7 +89,7 @@
                 to_date(#{recordTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
             <if test="vitalSignName!=null">
-                #{vitalSignName,jdbcType=VARCHAR},
+                #{vitalsignSval1,jdbcType=VARCHAR},
             </if>
             <if test="updateTime!=null">
                 to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
@@ -102,6 +103,7 @@
             <if test="vitalSignDetailsType!=null">
                 #{vitalSignDetailsType,jdbcType=VARCHAR},
             </if>
+            sysdate
         </trim>
     </insert>
 

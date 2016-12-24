@@ -27,9 +27,9 @@ import java.util.Map;
 @Component("hisUsersDao")
 public interface HisUsersDao extends BaseDao {
 
-    List<Map<String, Object>> queryUserDept(@Param(value = "userId") String userId);
+    List<Map<String, Object>> queryUserDept(Map<String, Object> params);
 
-    List<Map<String, Object>> queryUserWard(@Param(value = "userId") String userId);
+    List<Map<String, Object>> queryUserWard(Map<String, Object> params);
 
     List<Map<String, Object>> queryNiEmp(Map<String, Object> params);
 

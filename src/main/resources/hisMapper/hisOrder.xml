@@ -21,33 +21,34 @@
 <mapper namespace="com.heren.turtle.server.dao.hisDao.HisOrderDao">
 
     <resultMap id="orderMapper" type="java.util.Map">
-        <result column="order_no" property="orderNo"/>
-        <result column="group_no" property="groupNo"/>
-        <result column="order_code" property="orderCode"/>
-        <result column="order_name" property="orderName"/>
-        <result column="patient_id" property="patientId"/>
+        <result column="order_no" property="order_no"/>
+        <result column="group_no" property="group_no"/>
+        <result column="order_code" property="order_code"/>
+        <result column="order_name" property="order_name"/>
+        <result column="drug_name" property="drug_name"/>
+        <result column="patient_id" property="patient_id"/>
         <result column="series" property="series"/>
-        <result column="admission_id" property="admissionId"/>
-        <result column="dept_code" property="deptCode"/>
-        <result column="warde_code" property="wardeCode"/>
-        <result column="frequency_code" property="frequencyCode"/>
+        <result column="admission_id" property="admission_id"/>
+        <result column="dept_code" property="dept_code"/>
+        <result column="warde_code" property="ward_code"/>
+        <result column="frequency_code" property="frequency_code"/>
         <result column="dosage" property="dosage"/>
-        <result column="dosage_units" property="dosageUnits"/>
-        <result column="supply_name" property="supplyName"/>
-        <result column="supply_code" property="supplyCode"/>
-        <result column="order_status" property="orderStatus"/>
-        <result column="order_class" property="orderClass"/>
-        <result column="order_class_name" property="orderClassName"/>
-        <result column="long_once_flag" property="longOnceFlag"/>
-        <result column="start_time" property="startTime"/>
-        <result column="enter_time" property="enterTime"/>
-        <result column="stop_time" property="stopTime"/>
-        <result column="doctor_name" property="doctorName"/>
-        <result column="stop_doctor_name" property="stopDoctorName"/>
+        <result column="dosage_units" property="dosage_units"/>
+        <result column="supply_name" property="supply_name"/>
+        <result column="supply_code" property="supply_code"/>
+        <result column="order_status" property="order_status"/>
+        <result column="order_class" property="order_class"/>
+        <result column="order_class_name" property="order_class_name"/>
+        <result column="long_once_flag" property="long_once_flag"/>
+        <result column="start_time" property="start_time"/>
+        <result column="enter_time" property="enter_time"/>
+        <result column="stop_time" property="stop_time"/>
+        <result column="doctor_name" property="doctor_name"/>
+        <result column="stop_doctor_name" property="stop_doctor_name"/>
     </resultMap>
 
     <select id="queryOrders" parameterType="java.util.Map" resultMap="orderMapper">
-        SELECT * from mnis_his_orders_view
+        SELECT * from ip_mnis_order_view
         <where>
             <if test="items!=null">
                 AND
@@ -69,8 +70,11 @@
                     #{scItems,jdbcType=VARCHAR}
                 </foreach>
             </if>
-            <if test="admissionId!=null">
-                and admission_id=#{admissionId,jdbcType=VARCHAR}
+            <if test="patientId!=null">
+                and patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and series=#{series,jdbcType=VARCHAR}
             </if>
             <if test="longOnceFlag!=null">
                 and long_once_flag=#{longOnceFlag,jdbcType=VARCHAR}
@@ -78,11 +82,14 @@
             <if test="orderStatus!=null">
                 and ORDER_STATUS=#{orderStatus,jdbcType=VARCHAR}
             </if>
+            <if test="deptCode!=null">
+                and dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
             <if test="startTime!=null">
-                and start_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and start_time>=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="endTime!=null">
-                and start_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                <![CDATA[ and start_time<to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
         </where>
     </select>
@@ -100,13 +107,16 @@
             <if test="stopOrderDateTime!=null">
                 STOP_DATE_TIME=to_date(#{stopOrderDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
-            <if test="lastPerformDateTime!=null">
-                LAST_PERFORM_DATE_TIME=to_date(#{lastPerformDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            <if test="updateTime!=null">
+                LAST_PERFORM_DATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="updateBy!=null">
+                performed_by=#{updateBy,jdbcType=VARCHAR},
             </if>
         </set>
         <where>
             <if test="patientId!=null">
-                AND patient_id=#{patient_id,jdbcType=VARCHAR}
+                AND patient_id=#{patientId,jdbcType=VARCHAR}
             </if>
             <if test="series!=null">
                 AND VISIT_ID=#{series,jdbcType=VARCHAR}
@@ -143,10 +153,12 @@
         o.visit_id,
         o.order_no || '_' || o.order_sub_no AS doc_adv_no,
         o.order_text,
-        to_char(o.start_date_time, 'yyyy-MM-dd hh24:mi:ss'),
+        to_char(o.start_date_time, 'yyyy-MM-dd hh24:mi:ss') as start_date_time,
         (CASE
         WHEN o.stop_date_time IS NULL AND o.repeat_indicator = '1'
         THEN '1900-01-01 00:00:00'
+        WHEN o.stop_date_time IS NULL AND o.repeat_indicator = '0'
+        THEN to_char(o.start_date_time,'yyyy-MM-dd hh24:mi:ss')
         ELSE
         to_char(o.stop_date_time, 'yyyy-MM-dd hh24:mi:ss')
         END) AS stop_date_time,
@@ -170,6 +182,67 @@
             <if test="endTime!=null">
                 and start_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
+        </where>
+    </select>
+
+    <resultMap id="drugNiMapper" type="java.util.Map">
+        <result column="req_no" property="req_no"/>
+        <result column="patient_id" property="patient_id"/>
+        <result column="visit_id" property="in_hos_sum"/>
+        <result column="order_no" property="use_order_no"/>
+        <result column="order_code" property="medi_id"/>
+        <result column="order_text" property="medi_name"/>
+        <result column="administration" property="medi_Path"/>
+        <result column="dosage" property="dosage"/>
+        <result column="dosage_units" property="unit"/>
+        <result column="start_date_time" property="begin_time"/>
+        <result column="REPEAT_INDICATOR" property="doc_adv_type"/>
+        <result column="FREQUENCY" property="frequency"/>
+        <result column="DOCTOR" property="doctor"/>
+        <result column="ORDERING_DEPT" property="dict_no"/>
+        <result column="stop_date_time" property="end_time"/>
+    </resultMap>
+
+    <select id="queryNiDrug" resultMap="drugNiMapper" parameterType="java.util.Map">
+        SELECT
+        o.patient_id || '_' || o.visit_id AS req_no,
+        o.patient_id,
+        o.visit_id,
+        o.order_no || '_' || o.order_sub_no AS order_no,
+        o.order_code,
+        o.order_text,
+        o.administration,
+        o.dosage,
+        o.dosage_units,
+        to_char(o.start_date_time,'yyyy-MM-dd hh24:mi:ss') as start_date_time,
+        (CASE
+        WHEN o.stop_date_time IS NULL AND o.repeat_indicator = '1'
+        THEN '1900-01-01 00:00:00'
+        WHEN o.stop_date_time IS NULL AND o.repeat_indicator = '0'
+        THEN to_char(o.start_date_time,'yyyy-MM-dd hh24:mi:ss')
+        ELSE
+        to_char(o.stop_date_time, 'yyyy-MM-dd hh24:mi:ss')
+        END) AS stop_date_time,
+        decode(o.REPEAT_INDICATOR,'1','长期','0','临时','其他') as REPEAT_INDICATOR,
+        o.FREQUENCY,
+        o.DOCTOR,
+        o.ORDERING_DEPT
+        FROM orders o
+        <where>
+            <if test="patientId!=null">
+                AND o.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                AND o.VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and o.start_date_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                and o.start_date_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            AND o.order_class = 'A'
+            AND substr(o.order_code, 0, 2) IN ('01', '02')
         </where>
     </select>
 

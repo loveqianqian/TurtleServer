@@ -67,7 +67,7 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getDept(String deptCode) {
-        logger.info("getDept params:" + deptCode);
+        logger.info("ni getDept params:" + deptCode);
         List<Map<String, Object>> resultList = hisDeptDao.queryNIDept(deptCode);
         for (Map<String, Object> resultMap : resultList) {
             resultMap.keySet().stream().forEach(key ->
@@ -104,11 +104,24 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPatient(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("getPatient params:" + key + ":" + params.get(key)));
+        params.keySet().stream().forEach(key -> logger.info("ni getPatient params:" + key + ":" + params.get(key)));
+        if (params.containsKey("reqNo")) {
+            String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
         List<Map<String, Object>> resultList = hisPatientDao.queryNIPatient(params);
         for (Map<String, Object> resultMap : resultList) {
             resultMap.keySet().stream().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("hos_name", "天津市第五中心医院");
+            resultMap.put("pat_type", "1");
+            resultMap.put("age", "nullValue");
+            resultMap.put("age_unit", "nullValue");
+            resultMap.put("ward_no", "nullValue");
+            resultMap.put("in_hos_doc", "nullValue");
+            resultMap.put("in_hos_time", "nullValue");
+            resultMap.put("disease_lapse", "nullValue");
         }
         return resultList;
     }
@@ -122,7 +135,7 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getOrders(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("getOrders params:" + key + ":" + params.get(key)));
+        params.keySet().stream().forEach(key -> logger.info("ni getOrders params:" + key + ":" + params.get(key)));
         if (params.containsKey("reqNo")) {
             String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
             params.put("patientId", reqNo[0]);
@@ -146,7 +159,7 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getTransfer(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("getTransfer params:" + key + ":" + params.get(key)));
+        params.keySet().stream().forEach(key -> logger.info("ni getTransfer params:" + key + ":" + params.get(key)));
         if (params.containsKey("reqNo")) {
             String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
             params.put("patientId", reqNo[0]);
@@ -169,7 +182,7 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getDiagnosis(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("getDiagnosis params:" + key + ":" + params.get(key)));
+        params.keySet().stream().forEach(key -> logger.info("ni getDiagnosis params:" + key + ":" + params.get(key)));
         if (params.containsKey("reqNo")) {
             String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
             params.put("patientId", reqNo[0]);
@@ -181,7 +194,36 @@ public class NIAgent implements INIAgent {
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("diag_doc", "nullValue");
             resultMap.put("diag_docno", "nullValue");
-            resultMap.put("outhostext","nullValue");
+            resultMap.put("outhostext", "nullValue");
+        }
+        return resultList;
+    }
+
+    /**
+     * 当需要抗生素用药数据的时候调用
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getDrug(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("ni getDrug params:" + key + ":" + params.get(key)));
+        if (params.containsKey("reqNo")) {
+            String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
+        List<Map<String, Object>> resultList = hisOrderDao.queryNiDrug(params);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("med_class", "nullValue");
+            resultMap.put("class", "nullValue");
+            resultMap.put("med_usage", "nullValue");
+            resultMap.put("use_med_day", "nullValue");
+            resultMap.put("medi_aim", "nullValue");
+            resultMap.put("doctor_no", "nullValue");
         }
         return resultList;
     }

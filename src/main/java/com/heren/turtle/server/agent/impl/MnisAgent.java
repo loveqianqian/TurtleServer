@@ -21,6 +21,7 @@ import com.heren.turtle.server.dao.turtleDao.TurtlePioDao;
 import com.heren.turtle.server.dao.turtleDao.TurtleSignDao;
 import com.heren.turtle.server.utils.BooleanUtils;
 import com.heren.turtle.server.utils.ConversionUtils;
+import com.heren.turtle.server.utils.TimeUtils;
 import com.heren.turtle.server.utils.TransUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import static com.heren.turtle.server.service.Summoner.spells.add;
  * @author zhiwei
  * @create 2016-12-09 0:05.
  */
+@SuppressWarnings("JavaDoc")
 @Component("mnisAgent")
 @Transactional(readOnly = false, isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRED)
 public class MnisAgent implements IMnisAgent {
@@ -70,7 +72,7 @@ public class MnisAgent implements IMnisAgent {
     @Autowired
     private TransUtils transUtils;
 
-    protected Logger logger = Logger.getLogger(this.getClass());
+    private Logger logger = Logger.getLogger(this.getClass());
 
     /**
      * 通过科室代码查找科室
@@ -81,18 +83,14 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getDept(String deptCode) {
-        List<Map<String, Object>> maps = hisDeptDao.queryOnlyDept(deptCode);
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        for (Map<String, Object> map : maps) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("dept_code", ConversionUtils.isNullValue(map.get("deptCode"), transUtils));
-            resultMap.put("dept_name", ConversionUtils.isNullValue(map.get("deptName"), transUtils));
-            resultMap.put("dept_alias", ConversionUtils.isNullValue(map.get("deptAlias"), transUtils));
-            resultMap.put("pinyin", ConversionUtils.isNullValue(map.get("inputCode"), transUtils));
+        logger.info("mnis getDept params:" + deptCode);
+        List<Map<String, Object>> resultList = hisDeptDao.queryOnlyDept(deptCode);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("parent_dept_code", "nullValue");
             resultMap.put("parent_dept_name", "nullValue");
             resultMap.put("actionType", "nullValue");
-            resultList.add(resultMap);
         }
         return resultList;
     }
@@ -100,24 +98,19 @@ public class MnisAgent implements IMnisAgent {
     /**
      * 通过病区代码查找病区信息
      *
-     * @param wardCode
+     * @param params
      * @return
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getWard(String wardCode) {
-        List<Map<String, Object>> maps = hisDeptDao.queryOnlyWard(wardCode);
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        for (Map<String, Object> map : maps) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("ward_code", ConversionUtils.isNullValue(map.get("wardCode"), transUtils));
-            resultMap.put("dept_code", ConversionUtils.isNullValue(map.get("deptCode"), transUtils));
-            resultMap.put("ward_name", ConversionUtils.isNullValue(map.get("wardName"), transUtils));
-            resultMap.put("ward_alias", ConversionUtils.isNullValue(map.get("wardAlias"), transUtils));
-            resultMap.put("pinyin", ConversionUtils.isNullValue(map.get("inputCode"), transUtils));
+    public List<Map<String, Object>> getWard(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("mnis getWard params:" + key + ":" + params.get(key)));
+        List<Map<String, Object>> resultList = hisDeptDao.queryOnlyWard(params);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("parent_dept_name", "nullValue");
             resultMap.put("actionType", "nullValue");
-            resultList.add(resultMap);
         }
         return resultList;
     }
@@ -125,46 +118,45 @@ public class MnisAgent implements IMnisAgent {
     /**
      * 通过userId查找用户信息
      *
-     * @param userId
+     * @param params
      * @return
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getUserInfo(String userId, Map<String, Object> params) {
-        List<Map<String, Object>> totalMap = new ArrayList<>();
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        totalMap.addAll(hisUserDao.queryUserDept(userId));
-        totalMap.addAll(hisUserDao.queryUserWard(userId));
-        if (totalMap.size() > 0) {
-            for (Map<String, Object> map : totalMap) {
-                Map<String, Object> resultMap = new HashMap<>();
-                if (params.containsKey("ward_code") && !params.get("ward_code").equals("")) {
-                    String wardCode = (String) params.get("ward_code");
-                    if (map.get("userWard") != null && map.get("userWard").equals(wardCode)) {
-                        userInfoSample(resultList, map, resultMap);
-                    }
-                } else if (BooleanUtils.putMapBoolean(params, "dept_code")) {
-                    String deptCode = (String) params.get("dept_code");
-                    if (map.get("userDept") != null && !map.get("userDept").equals(deptCode)) {
-                        userInfoSample(resultList, map, resultMap);
-                    }
+    public List<Map<String, Object>> getUserInfo(Map<String, Object> params) {
+        List<Map<String, Object>> totalList = new ArrayList<>();
+        boolean deptCodeContain = params.containsKey("deptCode");
+        String deptCode = null;
+        if (deptCodeContain) {
+            deptCode = String.valueOf(params.get("deptCode"));
+        }
+        List<Map<String, Object>> userDeptList = hisUserDao.queryUserDept(params);
+        List<Map<String, Object>> userWardList = hisUserDao.queryUserWard(params);
+        for (Map<String, Object> resultMap : userDeptList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("passwd", "nullValue");
+            resultMap.put("actionType", "nullValue");
+            resultMap.put("ward_code", "nullValue");
+        }
+        for (Map<String, Object> resultMap : userWardList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("passwd", "nullValue");
+            resultMap.put("actionType", "nullValue");
+            if (!deptCodeContain) {
+                resultMap.put("dept_code", "nullValue");
+            } else {
+                if (deptCode != null) {
+                    resultMap.put("dept_code", deptCode);
                 } else {
-                    userInfoSample(resultList, map, resultMap);
+                    resultMap.put("dept_code", "nullValue");
                 }
             }
         }
-        return resultList;
-    }
-
-    private void userInfoSample(List<Map<String, Object>> resultList, Map<String, Object> map, Map<String, Object> resultMap) {
-        resultMap.put("login_id", ConversionUtils.isNullValue(map.get("userId"), transUtils));
-        resultMap.put("passwd", "nullValue");
-        resultMap.put("name", ConversionUtils.isNullValue(map.get("userName"), transUtils));
-        resultMap.put("user_code", ConversionUtils.isNullValue(map.get("userId"), transUtils));
-        resultMap.put("dept_code", ConversionUtils.isNullValue(map.get("userDept"), transUtils));
-        resultMap.put("ward_code", ConversionUtils.isNullValue(map.get("userWard"), transUtils));
-        resultMap.put("actionType", "nullValue");
-        resultList.add(resultMap);
+        totalList.addAll(userWardList);
+        totalList.addAll(userDeptList);
+        return totalList;
     }
 
     /**
@@ -176,47 +168,31 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPatInHos(Map<String, Object> params) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Map<String, Object>> queryList = hisPatientDao.queryPatInHos(params);
-        for (Map<String, Object> map : queryList) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("patient_id", ConversionUtils.isNullValue(map.get("patientId"), transUtils));
-            resultMap.put("series", ConversionUtils.isNullValue(map.get("visitId"), transUtils));
-            resultMap.put("admission_id", ConversionUtils.isNullValue(map.get("admissionId"), transUtils));
-            resultMap.put("name", ConversionUtils.isNullValue(map.get("name"), transUtils));
-            resultMap.put("sex", ConversionUtils.isNullValue(map.get("sex"), transUtils));
-            resultMap.put("dept_code", ConversionUtils.isNullValue(map.get("deptCode"), transUtils));
-            resultMap.put("dept_name", ConversionUtils.isNullValue(map.get("deptName"), transUtils));
-            resultMap.put("ward_code", ConversionUtils.isNullValue(map.get("wardCode"), transUtils));
-            resultMap.put("ward_name", ConversionUtils.isNullValue(map.get("wardName"), transUtils));
-            resultMap.put("bed_no", ConversionUtils.isNullValue(map.get("bedNo"), transUtils));
-            resultMap.put("birthday", ConversionUtils.isNullValue(map.get("birthday"), transUtils));
-            resultMap.put("age", ConversionUtils.isNullValue(map.get("age"), transUtils));
-            resultMap.put("phone", ConversionUtils.isNullValue(map.get("phone"), transUtils));
-            resultMap.put("address", ConversionUtils.isNullValue(map.get("address"), transUtils));
-            resultMap.put("professional", ConversionUtils.isNullValue(map.get("professional"), transUtils));
-            resultMap.put("contact_info", ConversionUtils.isNullValue(map.get("contactInfo"), transUtils));
-            resultMap.put("weight", ConversionUtils.isNullValue(map.get("weight"), transUtils));
-            resultMap.put("height", ConversionUtils.isNullValue(map.get("height"), transUtils));
-            resultMap.put("admission_time", ConversionUtils.isNullValue(map.get("admissionTime"), transUtils));
-            resultMap.put("admission_ward_time", ConversionUtils.isNullValue(map.get("admissionWardTime"), transUtils));
-            resultMap.put("discharge_time", ConversionUtils.isNullValue(map.get("dischargeTime"), transUtils));
-            resultMap.put("diagnosis", ConversionUtils.isNullValue(map.get("diagnosis"), transUtils));
-            resultMap.put("nursing_class", ConversionUtils.isNullValue(map.get("nursingClass"), transUtils));
-            resultMap.put("patient_condition", ConversionUtils.isNullValue(map.get("patientCondition"), transUtils));
-            resultMap.put("charge_type", ConversionUtils.isNullValue(map.get("chargeType"), transUtils));
-            resultMap.put("charge_type_name", ConversionUtils.isNullValue(map.get("chargeTypeName"), transUtils));
-            resultMap.put("total_cost", ConversionUtils.isNullValue(map.get("totalCost"), transUtils));
-            resultMap.put("pre_payment", ConversionUtils.isNullValue(map.get("prePayment"), transUtils));
-            resultMap.put("self_payment", ConversionUtils.isNullValue(map.get("selfPayment"), transUtils));
-            resultMap.put("balance", ConversionUtils.isNullValue(map.get("balance"), transUtils));
-            resultMap.put("arrear_flag", ConversionUtils.isNullValue(map.get("arrearFlag"), transUtils));
-            resultMap.put("diet", ConversionUtils.isNullValue(map.get("diet"), transUtils));
-            resultMap.put("doctor_name", ConversionUtils.isNullValue(map.get("doctorName"), transUtils));
-            resultMap.put("status", ConversionUtils.isNullValue(map.get("status"), transUtils));
-            resultMap.put("allergy", ConversionUtils.isNullValue(map.get("allergy"), transUtils));
+        params.keySet().stream().forEach(key -> logger.info("mnis getPatInHos params:" + key + ":" + params.get(key)));
+        if (params.containsKey("admissionId")) {
+            String[] reqNo = String.valueOf(params.get("admissionId")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
+        List<Map<String, Object>> resultList = hisPatientDao.queryPatInHos(params);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            String birthDay = String.valueOf(resultMap.get("birthday"));
+            try {
+                resultMap.put("age", TimeUtils.getAge(birthDay));
+            } catch (Exception e) {
+                e.printStackTrace();
+                resultMap.put("age", "nullValue");
+            }
+            resultMap.put("status", "住院");
+            resultMap.put("diet", "nullValue");
+            resultMap.put("balance", "nullValue");
+            resultMap.put("charge_type_name", "nullValue");
+            resultMap.put("contact_info", "nullValue");
+            resultMap.put("weight", "nullValue");
+            resultMap.put("height", "nullValue");
             resultMap.put("actionType", "nullValue");
-            resultList.add(resultMap);
         }
         return resultList;
     }
@@ -230,47 +206,26 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPatOutHos(List<String> params) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Map<String, Object>> queryList = hisPatientDao.queryPatOutHos(params);
-        for (Map<String, Object> map : queryList) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("patient_id", ConversionUtils.isNullValue(map.get("patientId"), transUtils));
-            resultMap.put("series", ConversionUtils.isNullValue(map.get("series"), transUtils));
-            resultMap.put("admission_id", ConversionUtils.isNullValue(map.get("admissionId"), transUtils));
-            resultMap.put("name", ConversionUtils.isNullValue(map.get("name"), transUtils));
-            resultMap.put("sex", ConversionUtils.isNullValue(map.get("sex"), transUtils));
-            resultMap.put("dept_code", ConversionUtils.isNullValue(map.get("deptCode"), transUtils));
-            resultMap.put("dept_name", ConversionUtils.isNullValue(map.get("deptName"), transUtils));
-            resultMap.put("ward_code", ConversionUtils.isNullValue(map.get("wardCode"), transUtils));
-            resultMap.put("ward_name", ConversionUtils.isNullValue(map.get("wardName"), transUtils));
-            resultMap.put("bed_no", ConversionUtils.isNullValue(map.get("bedNo"), transUtils));
-            resultMap.put("birthday", ConversionUtils.isNullValue(map.get("birthday"), transUtils));
-            resultMap.put("age", ConversionUtils.isNullValue(map.get("age"), transUtils));
-            resultMap.put("phone", ConversionUtils.isNullValue(map.get("phone"), transUtils));
-            resultMap.put("address", ConversionUtils.isNullValue(map.get("address"), transUtils));
-            resultMap.put("professional", ConversionUtils.isNullValue(map.get("professional"), transUtils));
-            resultMap.put("contact_info", ConversionUtils.isNullValue(map.get("contactInfo"), transUtils));
-            resultMap.put("weight", ConversionUtils.isNullValue(map.get("weight"), transUtils));
-            resultMap.put("height", ConversionUtils.isNullValue(map.get("height"), transUtils));
-            resultMap.put("admission_time", ConversionUtils.isNullValue(map.get("admissionTime"), transUtils));
-            resultMap.put("admission_ward_time", ConversionUtils.isNullValue(map.get("admissionWardTime"), transUtils));
-            resultMap.put("discharge_time", ConversionUtils.isNullValue(map.get("dischargeTime"), transUtils));
-            resultMap.put("diagnosis", ConversionUtils.isNullValue(map.get("diagnosis"), transUtils));
-            resultMap.put("nursing_class", ConversionUtils.isNullValue(map.get("nursingClass"), transUtils));
-            resultMap.put("patient_condition", ConversionUtils.isNullValue(map.get("patientCondition"), transUtils));
-            resultMap.put("charge_type", ConversionUtils.isNullValue(map.get("chargeType"), transUtils));
-            resultMap.put("charge_type_name", ConversionUtils.isNullValue(map.get("chargeTypeName"), transUtils));
-            resultMap.put("total_cost", ConversionUtils.isNullValue(map.get("totalCost"), transUtils));
-            resultMap.put("pre_payment", ConversionUtils.isNullValue(map.get("prePayment"), transUtils));
-            resultMap.put("self_payment", ConversionUtils.isNullValue(map.get("selfPayment"), transUtils));
-            resultMap.put("balance", ConversionUtils.isNullValue(map.get("balance"), transUtils));
-            resultMap.put("arrear_flag", ConversionUtils.isNullValue(map.get("arrearFlag"), transUtils));
-            resultMap.put("diet", ConversionUtils.isNullValue(map.get("diet"), transUtils));
-            resultMap.put("doctor_name", ConversionUtils.isNullValue(map.get("doctorName"), transUtils));
-            resultMap.put("status", ConversionUtils.isNullValue(map.get("status"), transUtils));
-            resultMap.put("allergy", ConversionUtils.isNullValue(map.get("allergy"), transUtils));
+        List<Map<String, Object>> resultList = hisPatientDao.queryPatOutHos(params);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key -> resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("diet", "nullValue");
+            resultMap.put("arrear_flag", "nullValue");
+            resultMap.put("status", "出院");
+            resultMap.put("age", "nullValue");
+            resultMap.put("weight", "nullValue");
+            resultMap.put("height", "nullValue");
+            resultMap.put("contact_info", "nullValue");
+            resultMap.put("professional", "nullValue");
+            resultMap.put("bed_no", "nullValue");
+            resultMap.put("nursing_class", "nullValue");
+            resultMap.put("charge_type_name", "nullValue");
             resultMap.put("actionType", "nullValue");
-            resultList.add(resultMap);
+            resultMap.put("admission_ward_time", "nullValue");
+            resultMap.put("diagnosis", "nullValue");
+            resultMap.put("patient_condition", "nullValue");
+            resultMap.put("pre_payment", "nullValue");
+            resultMap.put("balance", "nullValue");
         }
         return resultList;
     }
@@ -278,49 +233,26 @@ public class MnisAgent implements IMnisAgent {
     /**
      * 通过参数找出转院转科信息
      *
-     * @param outStartTime
-     * @param outEndTime
-     * @param patientId
-     * @param visitId
+     * @param params
      * @return
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getTurnDeptTurnBed(String outStartTime, String outEndTime, String patientId, String visitId) {
+    public List<Map<String, Object>> getTurnDeptTurnBed(Map<String, Object> params) {
         List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Map<String, Object>> transferList = hisDeptDao.queryTransfer(outStartTime, outEndTime, patientId, visitId);
-        List<Map<String, Object>> bedList = hisDeptDao.queryTransBed(outStartTime, outEndTime, patientId, visitId);
-        for (Map<String, Object> map : transferList) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("patient_id", ConversionUtils.isNullValue(map.get("patientId"), transUtils));
-            resultMap.put("series", ConversionUtils.isNullValue(map.get("visitId"), transUtils));
-            resultMap.put("admission_id", ConversionUtils.isNullValue(map.get("admissionId"), transUtils));
-            resultMap.put("turn_in_dept_code", ConversionUtils.isNullValue(map.get("deptTransferedTo"), transUtils));
-            resultMap.put("turn_in_dept_name", ConversionUtils.isNullValue(map.get("deptTransferedToName"), transUtils));
-            resultMap.put("turn_in_ward_code", ConversionUtils.isNullValue(map.get("wardTransuferedTo"), transUtils));
-            resultMap.put("turn_in_ward_name", ConversionUtils.isNullValue(map.get("wardTransferedToName"), transUtils));
-            resultMap.put("turn_in_bed_no", "nullValue");
-            resultMap.put("turn_in_time", ConversionUtils.isNullValue(map.get("dischargeDateTime"), transUtils));
-            resultMap.put("turn_out_dept_code", ConversionUtils.isNullValue(map.get("deptStayed"), transUtils));
-            resultMap.put("turn_out_dept_name", ConversionUtils.isNullValue(map.get("deptStayedName"), transUtils));
-            resultMap.put("turn_out_ward_code", ConversionUtils.isNullValue(map.get("wardStayed"), transUtils));
-            resultMap.put("turn_out_ward_name", ConversionUtils.isNullValue(map.get("wardStayedName"), transUtils));
+        params.keySet().stream().forEach(key -> logger.info("mnis getTurnDeptTurnBed params:" + key + ":" + params.get(key)));
+        List<Map<String, Object>> transferList = hisDeptDao.queryTransfer(params);
+        for (Map<String, Object> resultMap : transferList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("turn_out_bed_no", "nullValue");
-            resultMap.put("turn_out_time", ConversionUtils.isNullValue(map.get("admissionDateTime"), transUtils));
             resultMap.put("actionType", "nullValue");
             resultList.add(resultMap);
         }
-        for (Map<String, Object> map : bedList) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("patient_id", ConversionUtils.isNullValue(map.get("patientId"), transUtils));
-            resultMap.put("series", ConversionUtils.isNullValue(map.get("visitId"), transUtils));
-            resultMap.put("admission_id", ConversionUtils.isNullValue(map.get("admissionId"), transUtils));
-            resultMap.put("turn_in_dept_code", ConversionUtils.isNullValue(map.get("deptCode"), transUtils));
-            resultMap.put("turn_in_dept_name", ConversionUtils.isNullValue(map.get("deptName"), transUtils));
-            resultMap.put("turn_in_ward_code", ConversionUtils.isNullValue(map.get("wardCode"), transUtils));
-            resultMap.put("turn_in_ward_name", ConversionUtils.isNullValue(map.get("wardName"), transUtils));
-            resultMap.put("turn_in_bed_no", ConversionUtils.isNullValue(map.get("bedLabel"), transUtils));
-            resultMap.put("turn_in_time", ConversionUtils.isNullValue(map.get("logDateTime"), transUtils));
+        List<Map<String, Object>> bedList = hisDeptDao.queryTransBed(params);
+        for (Map<String, Object> resultMap : bedList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("turn_out_dept_code", "nullValue");
             resultMap.put("turn_out_dept_name", "nullValue");
             resultMap.put("turn_out_ward_code", "nullValue");
@@ -342,33 +274,23 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getOrder(Map<String, Object> params) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        List<Map<String, Object>> queryList = hisOrderDao.queryOrders(params);
-        for (Map<String, Object> map : queryList) {
-            Map<String, Object> resultMap = new HashMap<>();
-            resultMap.put("order_no", ConversionUtils.isNullValue(map.get("orderNo"), transUtils));
-            resultMap.put("group_no", ConversionUtils.isNullValue(map.get("groupNo"), transUtils));
-            resultMap.put("order_code", ConversionUtils.isNullValue(map.get("orderCode"), transUtils));
-            resultMap.put("order_name", ConversionUtils.isNullValue(map.get("orderName"), transUtils));
-            resultMap.put("patient_id", ConversionUtils.isNullValue(map.get("patientId"), transUtils));
-            resultMap.put("series", ConversionUtils.isNullValue(map.get("series"), transUtils));
-            resultMap.put("admission_id", ConversionUtils.isNullValue(map.get("admissionId"), transUtils));
-            resultMap.put("dept_code", ConversionUtils.isNullValue(map.get("deptCode"), transUtils));
-            resultMap.put("warde_code", ConversionUtils.isNullValue(map.get("wardeCode"), transUtils));
-            resultMap.put("frequency_code", ConversionUtils.isNullValue(map.get("frequencyCode"), transUtils));
-            resultMap.put("dosage", ConversionUtils.isNullValue(map.get("dosage"), transUtils));
-            resultMap.put("dosage_units", ConversionUtils.isNullValue(map.get("dosageUnits"), transUtils));
-            resultMap.put("supply_name", ConversionUtils.isNullValue(map.get("supplyName"), transUtils));
-            resultMap.put("supply_code", ConversionUtils.isNullValue(map.get("supplyCode"), transUtils));
-            resultMap.put("order_status", ConversionUtils.isNullValue(map.get("orderStatus"), transUtils));
-            resultMap.put("order_class", ConversionUtils.isNullValue(map.get("orderClass"), transUtils));
-            resultMap.put("order_class_name", ConversionUtils.isNullValue(map.get("orderClassName"), transUtils));
-            resultMap.put("long_once_flag", ConversionUtils.isNullValue(map.get("longOnceFlag"), transUtils));
-            resultMap.put("start_time", ConversionUtils.isNullValue(map.get("startTime"), transUtils));
-            resultMap.put("enter_time", ConversionUtils.isNullValue(map.get("enterTime"), transUtils));
-            resultMap.put("stop_time", ConversionUtils.isNullValue(map.get("stopTime"), transUtils));
-            resultMap.put("doctor_name", ConversionUtils.isNullValue(map.get("doctorName"), transUtils));
-            resultMap.put("stop_doctor_name", ConversionUtils.isNullValue(map.get("stopDoctorName"), transUtils));
+        params.keySet().stream().forEach(key -> logger.info("mnis getOrder params:" + key + ":" + params.get(key)));
+        if (params.containsKey("order_class")) {
+            String orderClass = (String) params.get("order_class");
+            String[] ocArray = orderClass.split(",");
+            List<String> ocItems = Arrays.asList(ocArray);
+            params.put("orderClassItems", ocItems);
+        }
+        if (params.containsKey("supply_code")) {
+            String supplyCode = (String) params.get("supply_code");
+            String[] scArray = supplyCode.split(",");
+            List<String> scItems = Arrays.asList(scArray);
+            params.put("supplyCodeItems", scItems);
+        }
+        List<Map<String, Object>> resultList = hisOrderDao.queryOrders(params);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().stream().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("drug_spec", "nullValue");
             resultMap.put("high_risk", "nullValue");
             resultMap.put("today_times", "nullValue");
@@ -378,7 +300,6 @@ public class MnisAgent implements IMnisAgent {
             resultMap.put("exhortation", "nullValue");
             resultMap.put("remark", "nullValue");
             resultMap.put("actionType", "nullValue");
-            resultList.add(resultMap);
         }
         return resultList;
     }
@@ -391,18 +312,18 @@ public class MnisAgent implements IMnisAgent {
      */
     @Override
     public boolean writebackOrder(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("mnis writebackOrder params:" + key + ":" + params.get(key)));
         try {
-            if (BooleanUtils.putMapBoolean(params, "action_type")) {
-                String actionType = String.valueOf(params.get("action_type"));
+            if (BooleanUtils.putMapBoolean(params, "actionType")) {
+                String actionType = String.valueOf(params.get("actionType"));
                 params.put("actionType", actionType);
-                if (actionType.equalsIgnoreCase(add.name())) {
-                    turtleOrdersDao.add(params);
-                } else {
-                    turtleOrdersDao.modify(params);
-                }
+                logger.info("actionType:" + actionType);
+                turtleOrdersDao.add(params);
+                hisOrderDao.modify(params);
+                return true;
+            } else {
+                return false;
             }
-            hisOrderDao.modify(params);
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage(), e);
@@ -418,17 +339,17 @@ public class MnisAgent implements IMnisAgent {
      */
     @Override
     public boolean writebackPio(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("mnis writebackPio params:" + key + ":" + params.get(key)));
         try {
-            if (BooleanUtils.putMapBoolean(params, "action_type")) {
-                String actionType = String.valueOf(params.get("action_type"));
+            if (BooleanUtils.putMapBoolean(params, "actionType")) {
+                String actionType = String.valueOf(params.get("actionType"));
                 params.put("actionType", actionType);
-                if (actionType.equalsIgnoreCase(add.name())) {
-                    turtlePioDao.add(params);
-                } else {
-                    turtlePioDao.modify(params);
-                }
+                logger.info("actionType:" + actionType);
+                turtlePioDao.add(params);
+                return true;
+            } else {
+                return false;
             }
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage(), e);
@@ -444,19 +365,22 @@ public class MnisAgent implements IMnisAgent {
      */
     @Override
     public boolean writebackSign(Map<String, Object> params) {
+        params.keySet().stream().forEach(key -> logger.info("mnis writebackSign params:" + key + ":" + params.get(key)));
         try {
-            if (BooleanUtils.putMapBoolean(params, "action_type")) {
-                String actionType = String.valueOf(params.get("action_type"));
+            if (BooleanUtils.putMapBoolean(params, "actionType")) {
+                String actionType = String.valueOf(params.get("actionType"));
                 params.put("actionType", actionType);
-                if (actionType.equalsIgnoreCase(add.name())) {
-                    turtleSignDao.add(params);
-                    hisSignDao.add(params);
-                } else {
-                    turtleSignDao.modify(params);
-                    hisSignDao.modify(params);
-                }
+                logger.info("actionType:" + actionType);
+                turtleSignDao.add(params);
+//                if (actionType.equalsIgnoreCase(add.name())) {
+//                    hisSignDao.add(params);
+//                } else {
+//                    hisSignDao.modify(params);
+//                }
+                return true;
+            } else {
+                return false;
             }
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage(), e);

@@ -74,4 +74,11 @@ public interface INIAgent {
      * @return
      */
     List<Map<String, Object>> getDiagnosis(Map<String, Object> params);
+
+    /**
+     * 当需要抗生素用药数据的时候调用
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getDrug(Map<String, Object> params);
 }

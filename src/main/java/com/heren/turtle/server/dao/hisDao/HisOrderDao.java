@@ -33,4 +33,6 @@ public interface HisOrderDao extends BaseDao {
 
     List<Map<String, Object>> queryNiOrder(Map<String, Object> params);
 
+    List<Map<String, Object>> queryNiDrug(Map<String, Object> params);
+
 }

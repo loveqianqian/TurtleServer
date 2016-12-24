@@ -52,8 +52,16 @@
         </where>
     </select>
 
-    <select id="queryOnlyDept" resultMap="deptMapper" parameterType="java.lang.String">
-        SELECT d.dept_code,
+    <resultMap id="deptOnlyMapper" type="java.util.Map">
+        <result column="dept_name" property="dept_name"/>
+        <result column="dept_code" property="dept_code"/>
+        <result column="DEPT_ALIAS" property="dept_alias"/>
+        <result column="INPUT_CODE" property="pinyin"/>
+    </resultMap>
+
+    <select id="queryOnlyDept" resultMap="deptOnlyMapper" parameterType="java.lang.String">
+        SELECT
+        d.dept_code,
         d.dept_name,
         d.DEPT_ALIAS,
         d.INPUT_CODE
@@ -62,132 +70,85 @@
             <if test="deptCode!=null and deptCode!=''">
                 and d.dept_code=#{deptCode,jdbcType=VARCHAR}
             </if>
-            and d.dept_code not in (SELECT dvw.ward_code from dept_dict dd,dept_vs_ward dvw where
-            dvw.dept_code=dd.dept_code)
+            and d.dept_code not in (SELECT dvw.ward_code from dept_vs_ward dvw )
         </where>
     </select>
 
-    <select id="queryOnlyWard" resultMap="deptMapper" parameterType="java.lang.String">
-        SELECT d.dept_code as ward_code,
+    <resultMap id="wardOnlyMapper" type="java.util.Map">
+        <result column="ward_code" property="ward_code"/>
+        <result column="dept_code" property="dept_code"/>
+        <result column="ward_name" property="ward_name"/>
+        <result column="ward_alias" property="ward_alias"/>
+        <result column="INPUT_CODE" property="pinyin"/>
+    </resultMap>
+
+    <select id="queryOnlyWard" resultMap="wardOnlyMapper" parameterType="java.util.Map">
+        SELECT
+        d.dept_code as ward_code,
+        dw.dept_code,
         d.dept_name as ward_name,
         d.DEPT_ALIAS as ward_alias,
-        d.INPUT_CODE,
-        dw.dept_code,
-        (select d2.dept_name
-        from dept_dict d2
-        where d2.dept_code=dw.dept_code) as dept_name
-        FROM dept_dict d,dept_vs_ward dw
+        d.INPUT_CODE
+        FROM dept_dict d, dept_vs_ward dw
         <where>
-            <if test="wardCode!=null and wardCode!=''">
+            <if test="wardCode!=null">
                 and d.dept_code=#{wardCode,jdbcType=VARCHAR}
             </if>
-            and d.dept_code in (SELECT dvw.ward_code from dept_dict dd,dept_vs_ward dvw where
-            dvw.dept_code=dd.dept_code)
+            <if test="deptCode!=null">
+                and dw.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            and d.dept_code in (SELECT dvw.ward_code from dept_vs_ward dvw )
             and d.dept_code=dw.ward_code
         </where>
     </select>
 
     <resultMap id="transferMapper" type="java.util.Map">
-        <result column="PATIENT_ID" property="patientId"/>
-        <result column="visit_id" property="visitId"/>
-        <result column="admission_id" property="admissionId"/>
-        <result column="dept_stayed" property="deptStayed"/>
-        <result column="dept_stayed_name" property="deptStayedName"/>
-        <result column="ward_stayed" property="wardStayed"/>
-        <result column="ward_stayed_name" property="wardStayedName"/>
-        <result column="admission_date_time" property="admissionDateTime"/>
-        <result column="discharge_date_time" property="dischargeDateTime"/>
-        <result column="dept_transfered_to" property="deptTransferedTo"/>
-        <result column="dept_transfered_to_name" property="deptTransferedToName"/>
-        <result column="ward_transfered_to" property="wardTransuferedTo"/>
-        <result column="ward_transfered_to_name" property="wardTransferedToName"/>
-        <result column="doctor_in_charge" property="doctorInCharge"/>
-        <result column="bed_label" property="bedLabel"/>
+        <result column="patient_id" property="patient_id"/>
+        <result column="series" property="series"/>
+        <result column="admission_id" property="admission_id"/>
+        <result column="turn_in_dept_code" property="turn_in_dept_code"/>
+        <result column="turn_in_dept_name" property="turn_in_dept_name"/>
+        <result column="turn_in_ward_code" property="turn_in_ward_code"/>
+        <result column="turn_in_ward_name" property="turn_in_ward_name"/>
+        <result column="turn_in_bed_no" property="turn_in_bed_no"/>
+        <result column="turn_in_time" property="turn_in_time"/>
+        <result column="turn_out_dept_code" property="turn_out_dept_code"/>
+        <result column="turn_out_dept_name" property="turn_out_dept_name"/>
+        <result column="turn_out_ward_code" property="turn_out_ward_code"/>
+        <result column="turn_out_ward_name" property="turn_out_ward_name"/>
+        <result column="turn_out_bed_no" property="turn_out_bed_no"/>
+        <result column="turn_out_time" property="turn_out_time"/>
     </resultMap>
 
-    <resultMap id="transMapper" type="java.util.Map">
-        <result column="ward_code" property="wardCode"/>
-        <result column="ward_name" property="wardName"/>
-        <result column="DEPT_CODE" property="deptCode"/>
-        <result column="dept_name" property="deptName"/>
-        <result column="log_date_time" property="logDateTime"/>
-        <result column="patient_id" property="patientId"/>
-        <result column="visit_id" property="visitId"/>
-        <result column="admission_id" property="admissionId"/>
-        <result column="doctor" property="doctor"/>
-        <result column="bed_label" property="bedLabel"/>
-    </resultMap>
-
-    <select id="queryTransfer" resultMap="transferMapper" parameterType="java.lang.String">
-        SELECT
-        t.PATIENT_ID,
-        t.visit_id,
-        t.PATIENT_ID||'_'||t.visit_id as admission_id,
-        t.dept_stayed,
-        (select dd.dept_name from dept_dict dd where dd.dept_code=t.dept_stayed) as dept_stayed_name,
-        (select dvw.ward_code from dept_vs_ward dvw where t.dept_stayed=dvw.dept_code) as ward_stayed,
-        (select dd.dept_name from dept_vs_ward dvw,dept_dict dd where dd.dept_code=dvw.ward_code and
-        t.dept_stayed=dvw.dept_code) as ward_stayed_name,
-        t.admission_date_time,
-        t.discharge_date_time,
-        t.dept_transfered_to,
-        (select dd.dept_name from dept_dict dd where dd.dept_code=t.dept_transfered_to) as dept_transfered_to_name,
-        (select dvw.ward_code from dept_vs_ward dvw where t.dept_transfered_to=dvw.dept_code) as
-        ward_transfered_to,
-        (select dd.dept_name from dept_vs_ward dvw,dept_dict dd where dd.dept_code=dvw.ward_code and
-        t.dept_transfered_to=dvw.dept_code) as ward_transfered_to_name,
-        t.doctor_in_charge,
-        t.bed_label
-        from transfer t
+    <select id="queryTransfer" resultMap="transferMapper" parameterType="java.util.Map">
+        SELECT *
+        from ip_mnis_transfer_dept im
         <where>
             <if test="outStartTime!=null">
-                and t.discharge_date_time &gt;=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and im.turn_in_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="outEndTime!=null">
-                and t.discharge_date_time &lt; to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                <![CDATA[ and im.turn_in_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
-            <if test="patientId!=null">
-                and t.PATIENT_ID=#{patientId,jdbcType=VARCHAR}
+            <if test="admissionId!=null">
+                and im.admission_id=#{admissionId,jdbcType=VARCHAR}
             </if>
-            <if test="visitId!=null">
-                and t.visit_id=#{visitId,jdbcType=VARCHAR}
-            </if>
-            and t.dept_transfered_to is not null
         </where>
     </select>
 
-    <select id="queryTransBed" resultMap="transMapper" parameterType="java.lang.String">
-        select
-        al.patient_id,
-        al.visit_id,
-        al.PATIENT_ID||'_'|| al.visit_id as admission_id,
-        (select dd.dept_name from dept_vs_ward dvw,dept_dict dd where dd.dept_code=dvw.ward_code and
-        al.ward_code=dvw.dept_code) as ward_name,
-        al.ward_code,
-        (select dd.dept_name from dept_dict dd where dd.dept_code=al.DEPT_CODE) as dept_name,
-        al.DEPT_CODE,
-        al.log_date_time,
-        al.doctor,
-        al.bed_label
-        from adt_log al
+    <select id="queryTransBed" resultMap="transferMapper" parameterType="java.util.Map">
+        select *
+        from ip_mnis_transfer_bed im
         <where>
             <if test="outStartTime!=null">
-                <![CDATA[
-                and al.log_date_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
-                ]]>
+                and im.turn_in_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="outEndTime!=null">
-                <![CDATA[
-                and al.log_date_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')
-                ]]>
+                <![CDATA[ and im.turn_in_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
-            <if test="patientId!=null">
-                and t.PATIENT_ID=#{patientId,jdbcType=VARCHAR}
+            <if test="admissionId!=null">
+                and im.admission_id=#{admissionId,jdbcType=VARCHAR}
             </if>
-            <if test="visitId!=null">
-                and t.visit_id=#{visitId,jdbcType=VARCHAR}
-            </if>
-            and al.action='R'
         </where>
     </select>
 

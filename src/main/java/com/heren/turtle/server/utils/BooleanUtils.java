@@ -35,16 +35,28 @@ public class BooleanUtils {
         return params.containsKey(key) && !params.get(key).equals("");
     }
 
+    public static boolean notContainMapBoolean(Map<String, Object> params, String key) {
+        return !putMapBoolean(params, key);
+    }
+
     public static Map<String, Object> putMapBooleanList(Map<String, Object> params, String... keys) {
         Map<String, Object> resultMap = new HashMap<>();
         Arrays.asList(keys).stream()
-              .filter(key -> params.containsKey(key) && !params.get(key).equals(""))
-              .forEach(key -> resultMap.put(change(key), params.get(key)));
+                .filter(key -> params.containsKey(key) && !params.get(key).equals(""))
+                .forEach(key -> resultMap.put(change(key), params.get(key)));
         return resultMap;
     }
 
     private static String change(String param) {
-        String[] split = param.split("_");
-        return split[0] + split[1].substring(0, 1).toUpperCase() + split[1].substring(1);
+        if (param.contains("_")) {
+            String[] split = param.split("_");
+            StringBuilder sb = new StringBuilder(split[0]);
+            for (int i = 1; i < split.length; i++) {
+                sb.append(split[i].substring(0, 1).toUpperCase()).append(split[i].substring(1));
+            }
+            return sb.toString();
+        } else {
+            return param;
+        }
     }
 }

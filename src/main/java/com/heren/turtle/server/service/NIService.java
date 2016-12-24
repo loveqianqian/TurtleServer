@@ -72,5 +72,14 @@ public interface NIService {
      */
     String getNIDiagnosis(String message);
 
+
+    /**
+     * 当需要抗生素的用药信息的时候可以调用
+     *
+     * @param message
+     * @return
+     */
+    String getNIDrug(String message);
+
 }
 

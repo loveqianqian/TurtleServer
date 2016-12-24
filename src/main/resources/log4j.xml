@@ -26,6 +26,7 @@
 
     <category name="com.heren.turtle" additivity="false">
         <priority value="INFO"/>
+        <priority value="console"/>
         <appender-ref ref="file"/>
     </category>
 

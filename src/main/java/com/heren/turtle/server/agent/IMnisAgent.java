@@ -37,18 +37,18 @@ public interface IMnisAgent {
     /**
      * 通过病区代码查找病区信息
      *
-     * @param wardCode
+     * @param params
      * @return
      */
-    List<Map<String, Object>> getWard(String wardCode);
+    List<Map<String, Object>> getWard(Map<String, Object> params);
 
     /**
      * 通过userId查找用户信息
      *
-     * @param userId
+     * @param params
      * @return
      */
-    List<Map<String, Object>> getUserInfo(String userId, Map<String, Object> params);
+    List<Map<String, Object>> getUserInfo(Map<String, Object> params);
 
     /**
      * 通过参数查找在院病人信息
@@ -70,13 +70,10 @@ public interface IMnisAgent {
     /**
      * 通过参数找出转院转科信息
      *
-     * @param outStartTime
-     * @param outEndTime
-     * @param patientId
-     * @param visitId
+     * @param params
      * @return
      */
-    List<Map<String, Object>> getTurnDeptTurnBed(String outStartTime, String outEndTime, String patientId, String visitId);
+    List<Map<String, Object>> getTurnDeptTurnBed(Map<String, Object> params);
 
     /**
      * 通过参数找出医嘱信息

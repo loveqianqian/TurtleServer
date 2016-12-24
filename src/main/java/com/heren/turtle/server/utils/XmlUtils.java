@@ -42,7 +42,7 @@ public class XmlUtils {
      */
     public static boolean isXml(String value) {
         try {
-            DocumentHelper.parseText(value);
+            DocumentHelper.parseText(replaceWrongPart(value));
         } catch (DocumentException e) {
             return false;
         }
@@ -168,6 +168,7 @@ public class XmlUtils {
      * @return
      */
     public static Map<String, Object> getMessage(String message) throws DocumentException {
+        message = replaceWrongPart(message);
         Document document = DocumentHelper.parseText(message);
         Element rootElement = document.getRootElement();
         Element request = rootElement.element("request");
@@ -218,6 +219,10 @@ public class XmlUtils {
             userId.setText("0001");
         }
         return document.asXML();
+    }
+
+    public static String replaceWrongPart(String message) {
+        return message.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "").replace("\n", "").replace("\t", "");
     }
 
 }

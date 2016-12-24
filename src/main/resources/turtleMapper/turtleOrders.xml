@@ -118,6 +118,7 @@
             <if test="series!=null">
                 SERIES,
             </if>
+            action_date
         </trim>
         VALUES
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -158,6 +159,7 @@
             <if test="series!=null">
                 #{series,jdbcType=VARCHAR},
             </if>
+            sysdate
         </trim>
     </insert>
 </mapper>
