@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisLisDao">
+
+    <resultMap id="lisMapper" type="java.util.Map">
+        <result column="test_no" property="test_no"/>
+        <result column="patient_id" property="patient_id"/>
+        <result column="series" property="series"/>
+        <result column="admission_id" property="admission_id"/>
+        <result column="specimen" property="specimen"/>
+        <result column="order_no" property="order_no"/>
+        <result column="group_no" property="group_no"/>
+        <result column="requested_date_time" property="requested_date_time"/>
+        <result column="ordering_provider" property="ordering_provider"/>
+    </resultMap>
+
+    <select id="query" parameterType="java.util.Map" resultMap="lisMapper">
+        SELECT
+        ltm.test_no,
+        ltm.patient_id,
+        ltm.visit_id as series,
+        pmi.inp_no as admission_id,
+        ltm.specimen,
+        do.order_no || '_' || do.order_sub_no || '_' || do.patient_id || '_' || do.visit_id as order_no,
+        do.order_no as group_no,
+        to_char(ltm.requested_date_time, 'yyyy-MM-dd hh24:mi:ss') as requested_date_time,
+        ltm.ordering_provider
+        FROM
+        doctor_orders do, pat_master_index pmi, lab_test_master ltm, pats_in_hospital pih
+        <where>
+            <if test="testNo!=null">
+                and ltm.test_no=#{testNo,jdbcType=VARCHAR}
+            </if>
+            <if test="patientId!=null">
+                and ltm.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and ltm.visit_id=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="orderNo!=null">
+                and do.order_no=#{orderNo,jdbcType=VARCHAR}
+            </if>
+            <if test="orderSubNo!=null">
+                and do.order_sub_no=#{orderSubNo,jdbcType=VARCHAR}
+            </if>
+            and do.patient_id = pmi.patient_id
+            AND do.req_id = ltm.test_no
+            AND do.patient_id = ltm.patient_id
+            AND do.visit_id = ltm.visit_id
+            AND do.patient_id = pih.patient_id
+            AND do.visit_id = pih.visit_id
+        </where>
+    </select>
+
+    <resultMap id="labViewMap" type="java.util.Map">
+        <result column="TEST_NO" property="test_no"/>
+        <result column="PATIENT_ID" property="patient_id"/>
+        <result column="VISIT_ID" property="visit_id"/>
+        <result column="BABY_NO" property="baby_no"/>
+        <result column="NAME" property="name"/>
+        <result column="SEX" property="sex"/>
+        <result column="AGE" property="age"/>
+        <result column="DATE_OF_BIRTH" property="date_of_birth"/>
+        <result column="CHARGE_TYPE" property="charge_type"/>
+        <result column="ORDERING_DEPT" property="ordering_dept"/>
+        <result column="ORDERING_PROVIDER" property="ordering_provider"/>
+        <result column="REQUESTED_DATE_TIME" property="requested_date_time"/>
+        <result column="SPCM_SAMPLE_DATE_TIME" property="spcm_sample_date_time"/>
+        <result column="SPECIMEN" property="specimen"/>
+        <result column="PERFORMED_BY" property="performed_by"/>
+        <result column="RELEVANT_CLINIC_DIAG" property="relevant_clinic_diag"/>
+        <result column="NOTES_FOR_SPCM" property="notes_for_spcm"/>
+        <result column="ITEM_NO" property="item_no"/>
+        <result column="ITEM_NAME" property="item_name"/>
+        <result column="ITEM_CODE" property="item_code"/>
+        <result column="SHEET_TITLE" property="sheet_title"/>
+        <result column="SHEET_ID" property="sheet_id"/>
+        <result column="COSTS" property="costs"/>
+        <result column="CHARGES" property="charges"/>
+        <result column="RESULT_STATUS" property="result_status"/>
+        <result column="BILLING_INDICATOR" property="billing_indicator"/>
+        <result column="BED_LABEL" property="bed_label"/>
+        <result column="priority_indicator" property="priority_indicator"/>
+    </resultMap>
+
+    <select id="queryLabTranView" resultMap="labViewMap" parameterType="java.util.Map">
+        select
+        t.TEST_NO,
+        t.PATIENT_ID,
+        t.VISIT_ID,
+        t.BABY_NO,
+        t.NAME,
+        t.SEX,
+        t.AGE,
+        t.DATE_OF_BIRTH,
+        t.CHARGE_TYPE,
+        t.ORDERING_DEPT,
+        t.ORDERING_PROVIDER,
+        t.REQUESTED_DATE_TIME,
+        t.SPCM_SAMPLE_DATE_TIME,
+        t.SPECIMEN,
+        t.PERFORMED_BY,
+        t.RELEVANT_CLINIC_DIAG,
+        t.NOTES_FOR_SPCM,
+        t.ITEM_NO,
+        t.ITEM_NAME,
+        t.ITEM_CODE,
+        t.SHEET_TITLE,
+        t.SHEET_ID,
+        t.COSTS,
+        t.CHARGES,
+        t.RESULT_STATUS,
+        t.BILLING_INDICATOR,
+        t.BED_LABEL,
+        t.priority_indicator
+        from LAB_TRAN_VIEW t
+        <where>
+            <if test="testNo!=null">
+                and t.test_no=#{testNo,jdbcType=VARCHAR}
+            </if>
+            <if test="patientId!=null">
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                and t.visit_id=#{visitId,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="modifyLabCharge" statementType="CALLABLE" parameterType="java.util.Map">
+        CALL Lab.LAB_TRANS_PKG.trans_lab_clinic(
+                #{testNo,mode=IN,jdbcType=VARCHAR},
+                #{patientId,mode=IN,jdbcType=VARCHAR},
+                #{visitId,mode=IN,jdbcType=VARCHAR},
+                #{babyNo,mode=IN,jdbcType=VARCHAR},
+                #{operatorNo,mode=IN,jdbcType=VARCHAR},
+                #{itemFlag,mode=IN,jdbcType=VARCHAR},
+                #{itemNo,mode=IN,jdbcType=VARCHAR},
+                #{itemCode,mode=IN,jdbcType=VARCHAR},
+                #{price,mode=OUT,jdbcType=VARCHAR},
+                #{charges,mode=OUT,jdbcType=VARCHAR},
+                #{execStat,mode=OUT,jdbcType=VARCHAR}
+        )
+    </select>
+
+    <select id="modifyMicrobeCharge" statementType="CALLABLE" parameterType="java.util.Map">
+        CALL Lab.charge_by_sheet_wsw(
+                #{testNo,mode=IN,jdbcType=VARCHAR},
+                #{patientId,mode=IN,jdbcType=VARCHAR},
+                #{visitId,mode=IN,jdbcType=VARCHAR},
+                #{babyNo,mode=IN,jdbcType=VARCHAR},
+                #{operatorNo,mode=IN,jdbcType=VARCHAR},
+                #{itemFlag,mode=IN,jdbcType=VARCHAR},
+                #{itemNo,mode=IN,jdbcType=VARCHAR},
+                #{itemCode,mode=IN,jdbcType=VARCHAR},
+                #{chargeCode,mode=IN,jdbcType=VARCHAR},
+                #{charges,mode=OUT,jdbcType=VARCHAR},
+                #{execStat,mode=OUT,jdbcType=VARCHAR}
+        )
+    </select>
+
+    <select id="modifyStatus" statementType="CALLABLE" parameterType="java.util.Map">
+        CALL Lab.lab_trans_pkg.lab_master_update(
+                #{testNo,mode=IN,jdbcType=VARCHAR},
+                #{resultStatus,mode=IN,jdbcType=VARCHAR},
+                #{reporter,mode=IN,jdbcType=VARCHAR},
+                #{verifiedBy,mode=IN,jdbcType=VARCHAR},
+                #{ret,mode=OUT,jdbcType=VARCHAR}
+        )
+    </select>
+
+    <select id="modifyReport" statementType="CALLABLE" parameterType="java.util.Map">
+        CALL Lab.lab_trans_pkg.lab_result_insert(
+                #{testNo,mode=IN,jdbcType=VARCHAR},
+                #{itemNo,mode=IN,jdbcType=VARCHAR},
+                #{printOrder,mode=IN,jdbcType=VARCHAR},
+                #{reportItemName,mode=IN,jdbcType=VARCHAR},
+                #{reportItemCode,mode=IN,jdbcType=VARCHAR},
+                #{reportItemName2,mode=IN,jdbcType=VARCHAR},
+                #{reportItemCode2,mode=IN,jdbcType=VARCHAR},
+                #{result,mode=IN,jdbcType=VARCHAR},
+                #{units,mode=IN,jdbcType=VARCHAR},
+                #{abnormalIndicator,mode=IN,jdbcType=VARCHAR},
+                #{instrumentId,mode=IN,jdbcType=VARCHAR},
+                #{resultDateTime,mode=IN,jdbcType=VARCHAR},
+                #{lowerLimit,mode=IN,jdbcType=VARCHAR},
+                #{upperLimit,mode=IN,jdbcType=VARCHAR},
+                #{refRange,mode=IN,jdbcType=VARCHAR},
+                #{ret,mode=OUT,jdbcType=VARCHAR}
+        )
+    </select>
+
+</mapper>

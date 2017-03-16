@@ -34,21 +34,25 @@
 
     <select id="queryDeptNameByDeptCode" parameterType="java.lang.String" resultType="java.lang.String">
         select dd.dept_name
-        from dept_dict dd
+        from comm.dept_dict dd
         <where>
-            and dd.dept_code=#{deptCode,jdbcType=VARCHAR}
+            <if test="deptCode!=null">
+                and dd.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
         </where>
     </select>
 
     <select id="queryWardByDeptCode" parameterType="java.lang.String" resultMap="deptMapper">
         select dvw.ward_code,
         (select d.dept_name
-        from dept_dict d
+        from comm.dept_dict d
         where d.dept_code=dvw.ward_code) ward_name
-        from dept_dict dd,dept_vs_ward dvw
+        from comm.dept_dict dd,comm.dept_vs_ward dvw
         <where>
+            <if test="deptCode!=null">
+                and dd.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
             and dvw.dept_code=dd.dept_code
-            and dd.dept_code=#{deptCode,jdbcType=VARCHAR}
         </where>
     </select>
 
@@ -65,7 +69,7 @@
         d.dept_name,
         d.DEPT_ALIAS,
         d.INPUT_CODE
-        FROM dept_dict d
+        FROM comm.dept_dict d
         <where>
             <if test="deptCode!=null and deptCode!=''">
                 and d.dept_code=#{deptCode,jdbcType=VARCHAR}
@@ -89,7 +93,7 @@
         d.dept_name as ward_name,
         d.DEPT_ALIAS as ward_alias,
         d.INPUT_CODE
-        FROM dept_dict d, dept_vs_ward dw
+        FROM comm.dept_dict d, comm.dept_vs_ward dw
         <where>
             <if test="wardCode!=null">
                 and d.dept_code=#{wardCode,jdbcType=VARCHAR}
@@ -97,7 +101,7 @@
             <if test="deptCode!=null">
                 and dw.dept_code=#{deptCode,jdbcType=VARCHAR}
             </if>
-            and d.dept_code in (SELECT dvw.ward_code from dept_vs_ward dvw )
+            and d.dept_code in (SELECT dvw.ward_code from comm.dept_vs_ward dvw )
             and d.dept_code=dw.ward_code
         </where>
     </select>
@@ -121,33 +125,66 @@
     </resultMap>
 
     <select id="queryTransfer" resultMap="transferMapper" parameterType="java.util.Map">
-        SELECT *
-        from ip_mnis_transfer_dept im
+        SELECT t.PATIENT_ID,
+        t.visit_id as series,
+        (select pmi.inp_no from MEDREC.pat_master_index pmi where pmi.patient_id = t.PATIENT_ID) as admission_id,
+        t.dept_stayed turn_in_dept_code,
+        (select dd.dept_name from COMM.dept_dict dd where dd.dept_code = t.dept_stayed) as turn_in_dept_name,
+        (select dvw.ward_code from COMM.dept_vs_ward dvw where t.dept_stayed = dvw.dept_code) as turn_in_ward_code,
+        (select dd.dept_name from COMM.dept_vs_ward dvw, COMM.dept_dict dd where dd.dept_code = dvw.ward_code
+        and t.dept_stayed = dvw.dept_code) as turn_in_ward_name,
+        t.admission_date_time as turn_in_time,
+        t.discharge_date_time as turn_out_time,
+        t.dept_transfered_to as turn_out_dept_code,
+        (select dd.dept_name from COMM.dept_dict dd where dd.dept_code = t.dept_transfered_to) as turn_out_dept_name,
+        (select dvw.ward_code from COMM.dept_vs_ward dvw where t.dept_transfered_to = dvw.dept_code) as turn_out_ward_code,
+        (select dd.dept_name from COMM.dept_vs_ward dvw, COMM.dept_dict dd where dd.dept_code = dvw.ward_code and t.dept_transfered_to = dvw.dept_code) as turn_out_ward_name,
+        t.bed_label as turn_in_bed_no
+        from MEDREC.transfer t
         <where>
+            and t.dept_transfered_to is not null
             <if test="outStartTime!=null">
-                and im.turn_in_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and t.admission_date_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="outEndTime!=null">
-                <![CDATA[ and im.turn_in_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+                <![CDATA[ and t.admission_date_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
-            <if test="admissionId!=null">
-                and im.admission_id=#{admissionId,jdbcType=VARCHAR}
+            <if test="patientId!=null">
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="turnOutWardCode!=null">
+                and t.dept_transfered_to=(select de.dept_code from dept_vs_ward de where de.ward_code=#{turnOutWardCode,jdbcType=VARCHAR})
+            </if>
+            <if test="series!=null">
+                and t.visit_id=#{series,jdbcType=VARCHAR}
             </if>
         </where>
     </select>
 
     <select id="queryTransBed" resultMap="transferMapper" parameterType="java.util.Map">
-        select *
-        from ip_mnis_transfer_bed im
+        select al.patient_id,
+        al.visit_id as series,
+        (select pmi.inp_no from MEDREC.pat_master_index pmi where pmi.patient_id = al.PATIENT_ID) as admission_id,
+        (select dd.dept_name from comm.dept_dict dd  where al.ward_code = dd.dept_code) as turn_in_ward_name,
+        al.ward_code as turn_in_ward_code,
+        (select dd.dept_name from comm.dept_dict dd where dd.dept_code = al.DEPT_CODE) as turn_in_dept_name,
+        al.DEPT_CODE as turn_in_dept_code,
+        al.log_date_time as turn_in_time,
+        al.bed_label as turn_in_bed_no
+        from INPADM.adt_log al
         <where>
+            and al.action = 'R'
             <if test="outStartTime!=null">
-                and im.turn_in_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and al.log_date_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="outEndTime!=null">
-                <![CDATA[ and im.turn_in_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+                <![CDATA[ and al.log_date_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
-            <if test="admissionId!=null">
-                and im.admission_id=#{admissionId,jdbcType=VARCHAR}
+            <if test="patientId!=null">
+                and al.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and al.visit_id=#{series,jdbcType=VARCHAR}
             </if>
         </where>
     </select>
@@ -168,7 +205,7 @@
         dd.serial_no,
         dd.dept_alias,
         decode(dd.internal_or_sergery, '0', '内科', '1', '外科', '9', '其他', '兼备') AS internal_or_sergery
-        FROM dept_dict dd
+        FROM comm.dept_dict dd
         <where>
             and dd.clinic_attr NOT IN ('3')
             <if test="deptCode!=null">
@@ -196,15 +233,15 @@
         t.visit_id,
         t.dept_stayed,
         (SELECT dept_name
-        FROM dept_dict dd
+        FROM comm.dept_dict dd
         WHERE dd.dept_code = t.dept_stayed) AS out_dpet_name,
         to_char(t.admission_date_time, 'yyyy-MM-dd hh24:mi:ss') AS admission_date_time,
         t.dept_transfered_to,
         (SELECT dept_name
-        FROM dept_dict dd
+        FROM comm.dept_dict dd
         WHERE dd.dept_code = t.dept_transfered_to) AS in_dept_name,
         to_char(t.discharge_date_time, 'yyyy-MM-dd hh24:mi:ss') AS discharge_date_time
-        FROM transfer t
+        FROM MEDREC.transfer t
         <where>
             <if test="patientId!=null">
                 AND t.patient_id=#{patientId,jdbcType=VARCHAR}

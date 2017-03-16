@@ -25,8 +25,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * com.heren.turtle.server.agent.impl
@@ -86,10 +88,10 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getEmp(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("getEmp params:" + key + ":" + params.get(key)));
+        params.keySet().forEach(key -> logger.info("getEmp params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> resultList = hisUsersDao.queryNiEmp(params);
         for (Map<String, Object> resultMap : resultList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
         }
         return resultList;
@@ -104,15 +106,16 @@ public class NIAgent implements INIAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPatient(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("ni getPatient params:" + key + ":" + params.get(key)));
+        params.keySet().forEach(key -> logger.info("ni getPatient params:" + key + ":" + params.get(key)));
         if (params.containsKey("reqNo")) {
             String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
             params.put("patientId", reqNo[0]);
             params.put("visitId", reqNo[1]);
         }
-        List<Map<String, Object>> resultList = hisPatientDao.queryNIPatient(params);
-        for (Map<String, Object> resultMap : resultList) {
-            resultMap.keySet().stream().forEach(key ->
+        params.put("currentDept", params.get("deptCode"));
+        List<Map<String, Object>> inPatientList = hisPatientDao.queryNIPatient(params);
+        for (Map<String, Object> resultMap : inPatientList) {
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("hos_name", "天津市第五中心医院");
             resultMap.put("pat_type", "1");
@@ -123,7 +126,43 @@ public class NIAgent implements INIAgent {
             resultMap.put("in_hos_time", "nullValue");
             resultMap.put("disease_lapse", "nullValue");
         }
-        return resultList;
+        return inPatientList;
+    }
+
+    /**
+     * 当需要病人基本信息的时候调用
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getPatientOut(Map<String, Object> params) {
+        params.keySet().forEach(key -> logger.info("ni getPatientOut params:" + key + ":" + params.get(key)));
+        if (params.containsKey("reqNo")) {
+            String[] reqNo = String.valueOf(params.get("reqNo")).split("_");
+            params.put("patientId", reqNo[0]);
+            params.put("visitId", reqNo[1]);
+        }
+        params.put("currentDept", params.get("deptCode"));
+        List<Map<String, Object>> outPatientList = hisPatientDao.queryNIPatientOut(params);
+        for (Map<String, Object> resultMap : outPatientList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("hos_name", "天津市第五中心医院");
+            resultMap.put("current_dept", "nullValue");
+            resultMap.put("current_dist", "nullValue");
+            resultMap.put("bed_no", "nullValue");
+            resultMap.put("doctor_in_charge", "nullValue");
+            resultMap.put("pat_type", "1");
+            resultMap.put("age", "nullValue");
+            resultMap.put("age_unit", "nullValue");
+            resultMap.put("ward_no", "nullValue");
+            resultMap.put("in_hos_doc", "nullValue");
+            resultMap.put("in_hos_time", "nullValue");
+            resultMap.put("disease_lapse", "nullValue");
+        }
+        return outPatientList;
     }
 
     /**

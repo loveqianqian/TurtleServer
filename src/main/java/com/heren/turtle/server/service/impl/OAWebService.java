@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.jws.WebService;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,9 @@ import java.util.Map;
  * @create 2016-10-11 15:17.
  */
 @Component("oaWebService")
-@javax.jws.WebService(endpointInterface = "com.heren.turtle.server.service.OAService", serviceName = "oaWebService", targetNamespace = "http://service.server.turtle.heren.com/")
+@WebService(endpointInterface = "com.heren.turtle.server.service.OAService",
+        serviceName = "oaWebService",
+        targetNamespace = "http://service.server.turtle.heren.com/")
 public class OAWebService extends Summoner implements OAService {
 
     @Autowired

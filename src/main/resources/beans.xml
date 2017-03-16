@@ -39,16 +39,20 @@
     <bean id="hisDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
         <!--<bean id="hisDataSource" class="com.heren.turtle.server.core.SecretBasicDataSource">-->
         <!-- 用户名-->
-        <property name="user" value="system"/>
+        <!--<property name="user" value="system"/>-->
+        <property name="user" value="turtle"/>
         <!--<property name="user" value="iplat"/>-->
         <!-- 用户密码-->
-        <property name="password" value="manager"/>
+        <!--<property name="password" value="manager"/>-->
+        <property name="password" value="turtle"/>
         <!--<property name="password" value="iplattest"/>-->
 
         <property name="driverClass" value="oracle.jdbc.OracleDriver"/>
         <!--<property name="jdbcUrl" value="jdbc:oracle:thin:@168.192.0.1:1521/oracle"/>-->
         <!--<property name="jdbcUrl" value="jdbc:oracle:thin:@172.16.116.248:1521/oracle"/>-->
-        <property name="jdbcUrl" value="jdbc:oracle:thin:@localhost:1521/wzxdb"/>
+        <!--<property name="jdbcUrl" value="jdbc:oracle:thin:@localhost:1521/orcl"/>-->
+        <!--<property name="jdbcUrl" value="jdbc:oracle:thin:@220.113.132.136:62894/wzxdb"/>-->
+        <property name="jdbcUrl" value="jdbc:oracle:thin:@192.168.8.43:1521/wzxdb"/>
 
         <!--连接池中保留的最大连接数。默认值: 15 -->
         <property name="maxPoolSize" value="15"/>
@@ -119,7 +123,8 @@
         <!--<property name="password" value="tempturtle"/>-->
 
         <property name="driverClass" value="oracle.jdbc.OracleDriver"/>
-        <property name="jdbcUrl" value="jdbc:oracle:thin:@localhost:1521/orcl"/>
+        <property name="jdbcUrl" value="jdbc:oracle:thin:@127.0.0.1:1521/orcl"/>
+        <!--<property name="jdbcUrl" value="jdbc:oracle:thin:@192.168.8.41:1521/dwp"/>-->
         <!--<property name="jdbcUrl" value="jdbc:oracle:thin:@168.192.254.154:1521/oracle"/>-->
 
         <!--连接池中保留的最大连接数。默认值: 15 -->

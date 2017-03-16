@@ -14,13 +14,15 @@
 
 package com.heren.turtle.server.service;
 
+import javax.jws.WebService;
+
 /**
  * com.heren.turtle.service.service
  *
  * @author zhiwei
  * @create 2016-10-11 15:19.
  */
-@javax.jws.WebService
+@WebService
 public interface OAService {
 
     /**

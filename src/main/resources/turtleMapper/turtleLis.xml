@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtleLisDao">
+
+    <resultMap id="lisMapper" type="java.util.Map">
+        <result column="id" property="id"/>
+        <result column="test_no" property="testNo"/>
+        <result column="print_order" property="printOrder"/>
+        <result column="item_no" property="itemNo"/>
+        <result column="report_item_code" property="reportItemCode"/>
+        <result column="report_item_code2" property="reportItemCode2"/>
+        <result column="abnormal_indicator" property="abnormalIndicator"/>
+        <result column="result_date_time" property="resultDateTime"/>
+        <result column="germ_or_normal" property="germOrNormal"/>
+        <result column="action_details" property="actionDetails" jdbcType="CLOB" javaType="java.lang.String"
+                typeHandler="com.heren.turtle.server.core.OracleClobTypeHandler"/>
+        <result column="action_details_type" property="actionDetailsType"/>
+        <result column="action_date" property="actionDate"/>
+        <result column="action_type" property="actionType"/>
+    </resultMap>
+
+    <select id="query" parameterType="java.util.Map" resultMap="lisMapper">
+        SELECT
+        lr.ID
+        lr.TEST_NO
+        lr.PRINT_ORDER
+        lr.ITEM_NO
+        lr.REPORT_ITEM_CODE
+        lr.REPORT_ITEM_CODE2
+        lr.ABNORMAL_INDICATOR
+        lr.RESULT_DATE_TIME
+        lr.GERM_OR_NORMAL
+        lr.ACTION_DETAILS
+        lr.ACTION_DETAILS_TYPE
+        lr.ACTION_DATE
+        lr.ACTION_TYPE
+        FROM LIS_REPORT lr
+        <where>
+            <if test="id!=null">
+                AND lr.id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="testNo!=null">
+                AND lr.TEST_NO=#{testNo,jdbcType=VARCHAR}
+            </if>
+            <if test="printOrder!=null">
+                AND lr.PRINT_ORDER=#{printOrder,jdbcType=VARCHAR}
+            </if>
+            <if test="itemNo!=null">
+                AND lr.ITEM_NO=#{itemNo,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and lr.RESULT_DATE_TIME>=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                <![CDATA[ and lr.RESULT_DATE_TIME<to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+            </if>
+            <if test="germOrNormal!=null">
+                and lr.GERM_OR_NORMAL=#{germOrNormal,jdbcType=VARCHAR}
+            </if>
+            <if test="abnormalIndicator!=null">
+                and lr.ABNORMAL_INDICATOR=#{abnormalIndicator,jdbcType=VARCHAR}
+            </if>
+            <if test="actionType!=null">
+                and lr.ACTION_TYPE=#{actionType,jdbcType=VARCHAR}
+            </if>
+        </where>
+        ORDER by lr.ACTION_DATE DESC
+    </select>
+
+    <insert id="add" parameterType="java.util.Map">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+            select LIS_REPORT_AUTO_ID.NEXTVAL from dual
+        </selectKey>
+        INSERT INTO LIS_REPORT
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            ID,
+            TEST_NO,
+            PRINT_ORDER,
+            ITEM_NO,
+            REPORT_ITEM_CODE,
+            REPORT_ITEM_CODE2,
+            ABNORMAL_INDICATOR,
+            RESULT_DATE_TIME,
+            GERM_OR_NORMAL,
+            ACTION_DETAILS,
+            ACTION_DETAILS_TYPE,
+            ACTION_DATE,
+            ACTION_TYPE
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=NUMERIC},
+            #{testNo,jdbcType=VARCHAR},
+            #{printOrder,jdbcType=VARCHAR},
+            #{itemNo,jdbcType=VARCHAR},
+            #{reportItemCode,jdbcType=VARCHAR},
+            #{reportItemCode2,jdbcType=VARCHAR},
+            #{abnormalIndicator,jdbcType=VARCHAR},
+            to_date(#{resultDateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            #{germOrNormal,jdbcType=VARCHAR},
+            #{actionDetails,jdbcType=VARCHAR},
+            #{actionDetailsType,jdbcType=VARCHAR},
+            sysdate,
+            'add'
+        </trim>
+    </insert>
+
+    <update id="modify" parameterType="java.util.Map">
+        UPDATE LIS_REPORT lr
+        <set>
+            lr.ACTION_TYPE='delete'
+        </set>
+        <where>
+            <if test="id!=null">
+                AND lr.id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="testNo!=null">
+                AND lr.TEST_NO=#{testNo,jdbcType=VARCHAR}
+            </if>
+            <if test="printOrder!=null">
+                AND lr.PRINT_ORDER=#{printOrder,jdbcType=VARCHAR}
+            </if>
+            <if test="itemNo!=null">
+                AND lr.ITEM_NO=#{itemNo,jdbcType=VARCHAR}
+            </if>
+            and lr.ACTION_TYPE='add'
+        </where>
+    </update>
+
+    <select id="queryInt" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT
+        count(lr.ID)
+        FROM LIS_REPORT lr
+        <where>
+            <if test="id!=null">
+                AND lr.id=#{id,jdbcType=NUMERIC}
+            </if>
+            <if test="testNo!=null">
+                AND lr.TEST_NO=#{testNo,jdbcType=VARCHAR}
+            </if>
+            <if test="printOrder!=null">
+                AND lr.PRINT_ORDER=#{printOrder,jdbcType=VARCHAR}
+            </if>
+            <if test="itemNo!=null">
+                AND lr.ITEM_NO=#{itemNo,jdbcType=VARCHAR}
+            </if>
+            <if test="startTime!=null">
+                and lr.RESULT_DATE_TIME>=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                <![CDATA[ and lr.RESULT_DATE_TIME<to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+            </if>
+            <if test="germOrNormal!=null">
+                and lr.GERM_OR_NORMAL=#{germOrNormal,jdbcType=VARCHAR}
+            </if>
+            <if test="abnormalIndicator!=null">
+                and lr.ABNORMAL_INDICATOR=#{abnormalIndicator,jdbcType=VARCHAR}
+            </if>
+            <if test="actionType!=null">
+                and lr.ACTION_TYPE=#{actionType,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+</mapper>

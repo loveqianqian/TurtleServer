@@ -26,6 +26,7 @@ import com.heren.turtle.server.utils.XmlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.jws.WebService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,9 @@ import java.util.Map;
  * @create 2016-10-11 15:17.
  */
 @Component("niWebService")
-@javax.jws.WebService(endpointInterface = "com.heren.turtle.server.service.NIService", serviceName = "niWebService", targetNamespace = "http://service.server.turtle.heren.com/")
+@WebService(endpointInterface = "com.heren.turtle.server.service.NIService",
+        serviceName = "niWebService",
+        targetNamespace = "http://service.server.turtle.heren.com/")
 public class NIWebService extends Summoner implements NIService {
 
     @Autowired
@@ -118,16 +121,11 @@ public class NIWebService extends Summoner implements NIService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = XmlUtils.getMessage(message);
                 Map<String, Object> queryMap;
-                if (BooleanUtils.putMapBoolean(params, "req_no")
-                        || BooleanUtils.putMapBoolean(params, "current_dist")
-                        || BooleanUtils.putMapBoolean(params, "current_dept")
-                        || (BooleanUtils.putMapBoolean(params, "start_time") && BooleanUtils.putMapBoolean(params, "end_time"))) {
+                if (BooleanUtils.putMapBoolean(params, "dept_code")) {
                     queryMap = BooleanUtils.putMapBooleanList(params,
                             "req_no",
-                            "current_dist",
-                            "current_dept",
-                            "start_time",
-                            "end_time");
+                            "dept_code",
+                            "date_time");
                 } else {
                     throw new LackElementException("can't be without the key of the parameters");
                 }
@@ -159,12 +157,8 @@ public class NIWebService extends Summoner implements NIService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = XmlUtils.getMessage(message);
                 Map<String, Object> queryMap;
-                if (BooleanUtils.putMapBoolean(params, "req_no")
-                        || (BooleanUtils.putMapBoolean(params, "end_time") && BooleanUtils.putMapBoolean(params, "start_time"))) {
-                    queryMap = BooleanUtils.putMapBooleanList(params,
-                            "req_no",
-                            "start_time",
-                            "end_time");
+                if (BooleanUtils.putMapBoolean(params, "req_no")) {
+                    queryMap = BooleanUtils.putMapBooleanList(params, "req_no");
                 } else {
                     throw new LackElementException("can't be without the key of the parameters");
                 }
@@ -202,7 +196,7 @@ public class NIWebService extends Summoner implements NIService {
                             "req_no",
                             "start_time",
                             "end_time");
-                }else {
+                } else {
                     throw new LackElementException("can't be without the key of the parameters");
                 }
                 List<Map<String, Object>> resultList = niAgent.getTransfer(queryMap);
@@ -239,7 +233,7 @@ public class NIWebService extends Summoner implements NIService {
                             "req_no",
                             "start_time",
                             "end_time");
-                }else {
+                } else {
                     throw new LackElementException("can't be without the key of the parameters");
                 }
                 List<Map<String, Object>> resultList = niAgent.getDiagnosis(queryMap);
@@ -270,19 +264,51 @@ public class NIWebService extends Summoner implements NIService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = XmlUtils.getMessage(message);
                 Map<String, Object> queryMap;
-                if (BooleanUtils.putMapBoolean(params, "req_no")
-                        || (BooleanUtils.putMapBoolean(params, "end_time") && BooleanUtils.putMapBoolean(params, "start_time"))) {
-                    queryMap = BooleanUtils.putMapBooleanList(params,
-                            "req_no",
-                            "start_time",
-                            "end_time");
-                }else {
+                if (BooleanUtils.putMapBoolean(params, "req_no")) {
+                    queryMap = BooleanUtils.putMapBooleanList(params, "req_no");
+                } else {
                     throw new LackElementException("can't be without the key of the parameters");
                 }
                 List<Map<String, Object>> resultList = niAgent.getDrug(queryMap);
                 String dept = XmlUtils.createResultMessage(resultList);
                 this.logger.info("successful operation");
                 this.logger.info("getNIOrders result:" + dept);
+                return dept;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            this.logger.error("exception:" + e.getMessage());
+            return XmlUtils.errorMessage(e.getMessage());
+        }
+    }
+
+    /**
+     * 当需要病人基本信息的时候调用
+     *
+     * @param message
+     * @return
+     */
+    @Override
+    public String getNIPatientOut(String message) {
+        this.logger.info("getNIPatientOut receive mnis request message:\n" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessage(message);
+                Map<String, Object> queryMap;
+                if (BooleanUtils.putMapBoolean(params, "dept_code")) {
+                    queryMap = BooleanUtils.putMapBooleanList(params,
+                            "req_no",
+                            "dept_code",
+                            "date_time");
+                } else {
+                    throw new LackElementException("can't be without the key of the parameters");
+                }
+                List<Map<String, Object>> resultList = niAgent.getPatientOut(queryMap);
+                String dept = XmlUtils.createResultMessage(resultList);
+                this.logger.info("successful operation");
+                this.logger.info("getNIPatientOut result:" + dept);
                 return dept;
             } else {
                 this.logger.info(MessageConstant.formatFailed);

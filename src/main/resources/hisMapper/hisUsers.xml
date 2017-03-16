@@ -31,7 +31,7 @@
     <select id="queryUserDept" parameterType="java.util.Map" resultMap="usersMapper">
         select
         u.user_id,
-        u.user_id as login_id,
+        u.db_user as login_id,
         u.user_name,
         u.user_dept
         from users u
@@ -49,7 +49,7 @@
     <select id="queryUserWard" parameterType="java.util.Map" resultMap="usersMapper">
         select
         u.user_id,
-        u.user_id as login_id,
+        u.db_user as login_id,
         u.user_name,
         u.user_dept as user_ward
         from users u

@@ -29,32 +29,32 @@ public interface IMnisAgent {
     /**
      * 通过科室代码查找科室
      *
-     * @param deptCode
-     * @return
+     * @param deptCode String
+     * @return ArrayList
      */
     List<Map<String, Object>> getDept(String deptCode);
 
     /**
      * 通过病区代码查找病区信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return ArrayList
      */
     List<Map<String, Object>> getWard(Map<String, Object> params);
 
     /**
      * 通过userId查找用户信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return ArrayList
      */
     List<Map<String, Object>> getUserInfo(Map<String, Object> params);
 
     /**
      * 通过参数查找在院病人信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return ArrayList
      */
     List<Map<String, Object>> getPatInHos(Map<String, Object> params);
 
@@ -62,50 +62,81 @@ public interface IMnisAgent {
     /**
      * 通过参数朝找出院病人信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return ArrayList
      */
-    List<Map<String, Object>> getPatOutHos(List<String> params);
+    List<Map<String, Object>> getPatOutHos(List<Map<String, Object>> params);
 
     /**
      * 通过参数找出转院转科信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return ArrayList
      */
     List<Map<String, Object>> getTurnDeptTurnBed(Map<String, Object> params);
 
     /**
      * 通过参数找出医嘱信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return ArrayList
      */
     List<Map<String, Object>> getOrder(Map<String, Object> params);
 
     /**
+     * 通过参数找出医嘱信息
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getOrderDrug(Map<String, Object> params);
+
+    /**
      * 通过参数回写医嘱信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return boolean
      */
-    boolean writebackOrder(Map<String, Object> params);
+    boolean writeBackOrder(Map<String, Object> params);
 
     /**
      * 通过参数回写pio信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return boolean
      */
-    boolean writebackPio(Map<String, Object> params);
+    boolean writeBackPio(Map<String, Object> params);
 
     /**
      * 通过参数回写体征信息
      *
-     * @param params
-     * @return
+     * @param params HashMap
+     * @return boolean
      */
-    boolean writebackSign(Map<String, Object> params);
+    boolean writeBackSign(Map<String, Object> params);
 
+    /**
+     * 通过参数获取Lis信息
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getLisInfo(Map<String, Object> params);
+
+    /**
+     * 通过参数获取输血信息
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getBloodInfo(Map<String, Object> params);
+
+    /**
+     * 通过参数获取输血申请单信息
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getBloodRecInfo(Map<String, Object> params);
 
 }

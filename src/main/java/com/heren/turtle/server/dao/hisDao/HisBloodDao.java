@@ -15,26 +15,17 @@
 package com.heren.turtle.server.dao.hisDao;
 
 import com.heren.turtle.server.dao.BaseDao;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * com.heren.turtle.server.dao
- *
- * @author zhiwei
- * @create 2016-11-03 11:11.
+ * Created by luoxiaoming on 16-2-26.
  */
-@Component("hisOrderDao")
-public interface HisOrderDao extends BaseDao {
+@Component("hisBloodDao")
+public interface HisBloodDao extends BaseDao {
 
-    List<Map<String, Object>> queryOrders(Map<String, Object> params);
-
-    List<Map<String, Object>> queryDrugOrders(Map<String, Object> params);
-
-    List<Map<String, Object>> queryNiOrder(Map<String, Object> params);
-
-    List<Map<String, Object>> queryNiDrug(Map<String, Object> params);
-
+    List<Map<String, Object>> queryRec(@Param(value = "bloodOutNum") String bloodOutNum);
 }

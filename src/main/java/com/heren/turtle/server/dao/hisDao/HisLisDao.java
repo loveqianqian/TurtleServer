@@ -15,26 +15,26 @@
 package com.heren.turtle.server.dao.hisDao;
 
 import com.heren.turtle.server.dao.BaseDao;
+import com.sun.corba.se.spi.ior.ObjectKey;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * com.heren.turtle.server.dao
- *
- * @author zhiwei
- * @create 2016-11-03 11:11.
+ * Created by luoxiaoming on 16-2-26.
  */
-@Component("hisOrderDao")
-public interface HisOrderDao extends BaseDao {
+@Component("hisLisDao")
+public interface HisLisDao extends BaseDao {
 
-    List<Map<String, Object>> queryOrders(Map<String, Object> params);
+    List<Map<String, Object>> queryLabTranView(Map<String, Object> params);
 
-    List<Map<String, Object>> queryDrugOrders(Map<String, Object> params);
+    void modifyLabCharge(Map<String, Object> params);
 
-    List<Map<String, Object>> queryNiOrder(Map<String, Object> params);
+    void modifyMicrobeCharge(Map<String, Object> params);
 
-    List<Map<String, Object>> queryNiDrug(Map<String, Object> params);
+    void modifyStatus(Map<String, Object> params);
+
+    void modifyReport(Map<String, Object> params);
 
 }

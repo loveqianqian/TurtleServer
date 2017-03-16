@@ -41,9 +41,9 @@ public class BooleanUtils {
 
     public static Map<String, Object> putMapBooleanList(Map<String, Object> params, String... keys) {
         Map<String, Object> resultMap = new HashMap<>();
-        Arrays.asList(keys).stream()
-                .filter(key -> params.containsKey(key) && !params.get(key).equals(""))
-                .forEach(key -> resultMap.put(change(key), params.get(key)));
+        Arrays.stream(keys)
+              .filter(key -> params.containsKey(key) && !params.get(key).equals(""))
+              .forEach(key -> resultMap.put(change(key), params.get(key)));
         return resultMap;
     }
 

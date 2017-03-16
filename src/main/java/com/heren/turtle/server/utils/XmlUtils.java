@@ -103,13 +103,13 @@ public class XmlUtils {
     public static List<Map<String, String>> getEachElement(List elements) throws DocumentException {
         List<Map<String, String>> resultList = new ArrayList<>();
         if (elements.size() > 0) {
-            for (Iterator it = elements.iterator(); it.hasNext(); ) {
+            for (Object element : elements) {
                 Map<String, String> resultMap = new HashMap<>();
-                Element subElement = (Element) it.next();
+                Element subElement = (Element) element;
                 resultMap.put("eleName", subElement.getName());
                 List subElements = subElement.elements();
-                for (Iterator subIt = subElements.iterator(); subIt.hasNext(); ) {
-                    Element son = (Element) subIt.next();
+                for (Object subElement1 : subElements) {
+                    Element son = (Element) subElement1;
                     String name = son.getName();
                     String text = son.getText();
                     resultMap.put(name, text);
@@ -136,7 +136,7 @@ public class XmlUtils {
         Element result = response.addElement("result");
         result.setText("true");
         Element resultText = response.addElement("resultText");
-        resultText.setText(message);
+        resultText.setText(message == null ? "" : message);
         Element userId = response.addElement("userId");
         userId.setText("0001");
         return document.asXML();
@@ -174,15 +174,15 @@ public class XmlUtils {
         Element request = rootElement.element("request");
         List elements = request.elements();
         Map<String, Object> result = new HashMap<>();
-        for (Iterator it = elements.iterator(); it.hasNext(); ) {
-            Element subElement = (Element) it.next();
+        for (Object element : elements) {
+            Element subElement = (Element) element;
             if (subElement.isTextOnly()) {
                 result.put(subElement.getName(), subElement.getTextTrim());
             } else {
                 List<String> subList = new ArrayList<>();
                 List subEle = subElement.elements();
-                for (Iterator iterator = subEle.iterator(); iterator.hasNext(); ) {
-                    Element itemElements = (Element) iterator.next();
+                for (Object aSubEle : subEle) {
+                    Element itemElements = (Element) aSubEle;
                     subList.add(itemElements.getTextTrim());
                 }
                 result.put(subElement.getName(), subList);
@@ -192,8 +192,44 @@ public class XmlUtils {
     }
 
     /**
-     * @param params
+     * delete the label of xml that is not use
+     *
+     * @param message
      * @return
+     */
+    public static Map<String, Object> getMessageContainsMap(String message) throws DocumentException {
+        message = replaceWrongPart(message);
+        Document document = DocumentHelper.parseText(message);
+        Element rootElement = document.getRootElement();
+        Element request = rootElement.element("request");
+        List elements = request.elements();
+        Map<String, Object> result = new HashMap<>();
+        for (Object element : elements) {
+            Element subElement = (Element) element;
+            if (subElement.isTextOnly()) {
+                result.put(subElement.getName(), subElement.getTextTrim());
+            } else {
+                List<Map<String, String>> subList = new ArrayList<>();
+                List subEle = subElement.elements();
+                for (Object aSubEle : subEle) {
+                    Element itemElements = (Element) aSubEle;
+                    Map<String, String> subMap = new HashMap<>();
+                    List grandSubElements = itemElements.elements();
+                    for (Object grandSubElement : grandSubElements) {
+                        Element grandItemElements = (Element) grandSubElement;
+                        subMap.put(grandItemElements.getName().trim(), grandItemElements.getTextTrim());
+                    }
+                    subList.add(subMap);
+                }
+                result.put(subElement.getName(), subList);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param params ArrayList
+     * @return String
      */
     public static String createResultMessage(List<Map<String, Object>> params) throws Exception {
         Document document;
@@ -204,7 +240,7 @@ public class XmlUtils {
             Element items = response.addElement("items");
             for (Map<String, Object> param : params) {
                 Element item = items.addElement("item");
-                param.keySet().stream().forEach(key -> {
+                param.keySet().forEach(key -> {
                     Element element = item.addElement(key);
                     element.setText(String.valueOf(param.get(key)));
                 });
@@ -221,8 +257,44 @@ public class XmlUtils {
         return document.asXML();
     }
 
-    public static String replaceWrongPart(String message) {
+    /**
+     * @param params HashMap
+     * @return String
+     */
+    public static String createResultMessage(Map<String, Object> params) throws Exception {
+        Document document;
+        if (params != null) {
+            document = DocumentHelper.createDocument();
+            Element root = document.addElement("payload");
+            Element response = root.addElement("response");
+            params.keySet().forEach(key -> {
+                Element element = response.addElement(key);
+                element.setText(String.valueOf(params.get(key)));
+            });
+            Element userId = response.addElement("user_id");
+            userId.setText("0001");
+        } else {
+            document = DocumentHelper.createDocument();
+            Element root = document.addElement("payload");
+            Element response = root.addElement("response");
+            Element userId = response.addElement("user_id");
+            userId.setText("0001");
+        }
+        return document.asXML();
+    }
+
+    private static String replaceWrongPart(String message) {
         return message.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "").replace("\n", "").replace("\t", "");
     }
 
+
+    public static void main(String[] args) {
+        try {
+            Map<String, Object> result = getMessageContainsMap("<payload><request><items><item><patient_id>297659</patient_id><series>1</series></item><item><patient_id>297659</patient_id><series>1</series></item></items><user_id>0020</user_id></request></payload>");
+            List<Map<String, Object>> items = (List<Map<String, Object>>) result.get("items");
+            System.out.println("done" + items.get(0).get("patient_id"));
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        }
+    }
 }

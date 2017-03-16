@@ -17,6 +17,7 @@
 <configuration>
     <settings>
         <setting name="logImpl" value="LOG4J"/>
+        <setting name="callSettersOnNulls" value="true"/>
     </settings>
     <typeAliases>
     </typeAliases>

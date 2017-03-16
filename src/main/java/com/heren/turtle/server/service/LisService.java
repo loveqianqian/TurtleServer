@@ -23,73 +23,48 @@ import javax.jws.WebService;
  * @create 2016-10-11 15:19.
  */
 @WebService
-public interface NIService {
+public interface LisService {
 
     /**
-     * 当需要科室数据的时候调用
+     * lis获取检验申请单信息
      *
      * @param message
      * @return
      */
-    String getNIDept(String message);
+    String getLisApply(String message);
 
     /**
-     * 当需要人员数据的时候调用
+     * 检验计费
      *
      * @param message
      * @return
      */
-    String getNIEmp(String message);
+    String lisCharge(String message);
 
     /**
-     * 当需要病人基本信息的时候调用
+     * 微生物计费
      *
      * @param message
      * @return
      */
-    String getNIPatient(String message);
+    String microbeCharge(String message);
 
     /**
-     * 当需要医嘱数据的时候调用
+     * 检验状态更新
      *
      * @param message
      * @return
      */
-    String getNIOrders(String message);
-
+    String lisStatusChange(String message);
 
     /**
-     * 当需要转院转科数据的时候调用
+     * 检验报告
      *
      * @param message
      * @return
      */
-    String getNITransfer(String message);
+    String lisReport(String message);
 
-    /**
-     * 当需要诊断数据的时候调用
-     *
-     * @param message
-     * @return
-     */
-    String getNIDiagnosis(String message);
-
-
-    /**
-     * 当需要抗生素的用药信息的时候可以调用
-     *
-     * @param message
-     * @return
-     */
-    String getNIDrug(String message);
-
-    /**
-     * 当需要病人基本信息的时候调用
-     *
-     * @param message
-     * @return
-     */
-    String getNIPatientOut(String message);
 
 }
 

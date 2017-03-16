@@ -30,9 +30,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-
-import static com.heren.turtle.server.service.Summoner.spells.add;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * com.heren.turtle.server.agent.impl
@@ -72,6 +73,12 @@ public class MnisAgent implements IMnisAgent {
     @Autowired
     private TransUtils transUtils;
 
+    @Autowired
+    private HisLisDao hisLisDao;
+
+    @Autowired
+    private HisBloodDao hisBloodDao;
+
     private Logger logger = Logger.getLogger(this.getClass());
 
     /**
@@ -86,7 +93,7 @@ public class MnisAgent implements IMnisAgent {
         logger.info("mnis getDept params:" + deptCode);
         List<Map<String, Object>> resultList = hisDeptDao.queryOnlyDept(deptCode);
         for (Map<String, Object> resultMap : resultList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("parent_dept_code", "nullValue");
             resultMap.put("parent_dept_name", "nullValue");
@@ -104,10 +111,10 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getWard(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("mnis getWard params:" + key + ":" + params.get(key)));
+        params.keySet().forEach(key -> logger.info("mnis getWard params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> resultList = hisDeptDao.queryOnlyWard(params);
         for (Map<String, Object> resultMap : resultList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("parent_dept_name", "nullValue");
             resultMap.put("actionType", "nullValue");
@@ -133,14 +140,14 @@ public class MnisAgent implements IMnisAgent {
         List<Map<String, Object>> userDeptList = hisUserDao.queryUserDept(params);
         List<Map<String, Object>> userWardList = hisUserDao.queryUserWard(params);
         for (Map<String, Object> resultMap : userDeptList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("passwd", "nullValue");
             resultMap.put("actionType", "nullValue");
             resultMap.put("ward_code", "nullValue");
         }
         for (Map<String, Object> resultMap : userWardList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("passwd", "nullValue");
             resultMap.put("actionType", "nullValue");
@@ -168,15 +175,10 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getPatInHos(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("mnis getPatInHos params:" + key + ":" + params.get(key)));
-        if (params.containsKey("admissionId")) {
-            String[] reqNo = String.valueOf(params.get("admissionId")).split("_");
-            params.put("patientId", reqNo[0]);
-            params.put("visitId", reqNo[1]);
-        }
+        params.keySet().forEach(key -> logger.info("mnis getPatInHos params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> resultList = hisPatientDao.queryPatInHos(params);
         for (Map<String, Object> resultMap : resultList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             String birthDay = String.valueOf(resultMap.get("birthday"));
             try {
@@ -205,8 +207,14 @@ public class MnisAgent implements IMnisAgent {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getPatOutHos(List<String> params) {
-        List<Map<String, Object>> resultList = hisPatientDao.queryPatOutHos(params);
+    public List<Map<String, Object>> getPatOutHos(List<Map<String, Object>> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (Map<String, Object> param : params) {
+            resultList.addAll(hisPatientDao.queryPatOutHos(
+                    String.valueOf(param.get("patient_id")),
+                    String.valueOf(param.get("series"))
+            ));
+        }
         for (Map<String, Object> resultMap : resultList) {
             resultMap.keySet().stream().forEach(key -> resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("diet", "nullValue");
@@ -240,27 +248,29 @@ public class MnisAgent implements IMnisAgent {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getTurnDeptTurnBed(Map<String, Object> params) {
         List<Map<String, Object>> resultList = new ArrayList<>();
-        params.keySet().stream().forEach(key -> logger.info("mnis getTurnDeptTurnBed params:" + key + ":" + params.get(key)));
+        params.keySet().forEach(key -> logger.info("mnis getTurnDeptTurnBed params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> transferList = hisDeptDao.queryTransfer(params);
         for (Map<String, Object> resultMap : transferList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("turn_out_bed_no", "nullValue");
             resultMap.put("actionType", "nullValue");
             resultList.add(resultMap);
         }
-        List<Map<String, Object>> bedList = hisDeptDao.queryTransBed(params);
-        for (Map<String, Object> resultMap : bedList) {
-            resultMap.keySet().stream().forEach(key ->
-                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
-            resultMap.put("turn_out_dept_code", "nullValue");
-            resultMap.put("turn_out_dept_name", "nullValue");
-            resultMap.put("turn_out_ward_code", "nullValue");
-            resultMap.put("turn_out_ward_name", "nullValue");
-            resultMap.put("turn_out_bed_no", "nullValue");
-            resultMap.put("turn_out_time", "nullValue");
-            resultMap.put("actionType", "nullValue");
-            resultList.add(resultMap);
+        if (!params.containsKey("turnOutWardCode")) {
+            List<Map<String, Object>> bedList = hisDeptDao.queryTransBed(params);
+            for (Map<String, Object> resultMap : bedList) {
+                resultMap.keySet().forEach(key ->
+                        resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+                resultMap.put("turn_out_dept_code", "nullValue");
+                resultMap.put("turn_out_dept_name", "nullValue");
+                resultMap.put("turn_out_ward_code", "nullValue");
+                resultMap.put("turn_out_ward_name", "nullValue");
+                resultMap.put("turn_out_bed_no", "nullValue");
+                resultMap.put("turn_out_time", "nullValue");
+                resultMap.put("actionType", "nullValue");
+                resultList.add(resultMap);
+            }
         }
         return resultList;
     }
@@ -274,24 +284,37 @@ public class MnisAgent implements IMnisAgent {
     @Override
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getOrder(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("mnis getOrder params:" + key + ":" + params.get(key)));
-        if (params.containsKey("order_class")) {
-            String orderClass = (String) params.get("order_class");
+        params.keySet().forEach(key -> logger.info("mnis getOrder params:" + key + ":" + params.get(key)));
+        if (params.containsKey("orderClass")) {
+            String orderClass = (String) params.get("orderClass");
             String[] ocArray = orderClass.split(",");
             List<String> ocItems = Arrays.asList(ocArray);
             params.put("orderClassItems", ocItems);
         }
-        if (params.containsKey("supply_code")) {
-            String supplyCode = (String) params.get("supply_code");
+        if (params.containsKey("supplyCode")) {
+            String supplyCode = (String) params.get("supplyCode");
             String[] scArray = supplyCode.split(",");
             List<String> scItems = Arrays.asList(scArray);
             params.put("supplyCodeItems", scItems);
         }
-        List<Map<String, Object>> resultList = hisOrderDao.queryOrders(params);
+        List<String> items = (List<String>) params.get("items");
+        List<Map<String, Object>> resultList;
+        if (items == null) {
+            resultList = hisOrderDao.queryOrders(params);
+        } else {
+            resultList = new ArrayList<>();
+            items.forEach(item -> {
+                String[] split = item.split("_");
+                params.put("orderNo", split[0]);
+                params.put("orderSubNo", split[1]);
+                params.put("patientId", split[2]);
+                params.put("series", split[3]);
+                resultList.addAll(hisOrderDao.queryOrders(params));
+            });
+        }
         for (Map<String, Object> resultMap : resultList) {
-            resultMap.keySet().stream().forEach(key ->
+            resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
-            resultMap.put("drug_spec", "nullValue");
             resultMap.put("high_risk", "nullValue");
             resultMap.put("today_times", "nullValue");
             resultMap.put("skin_test", "nullValue");
@@ -305,14 +328,45 @@ public class MnisAgent implements IMnisAgent {
     }
 
     /**
+     * 通过参数找出医嘱信息
+     *
+     * @param params
+     * @return
+     */
+    @Override
+    public List<Map<String, Object>> getOrderDrug(Map<String, Object> params) {
+        params.keySet().forEach(key -> logger.info("mnis getOrderDrug params:" + key + ":" + params.get(key)));
+        List<Map<String, Object>> resultList = hisOrderDao.queryDrugOrders(params);
+        for (Map<String, Object> resultMap : resultList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("high_risk", "nullValue");
+            resultMap.put("today_times", "nullValue");
+            resultMap.put("skin_test", "nullValue");
+            resultMap.put("provide_by_self", "nullValue");
+            resultMap.put("is_aux", "nullValue");
+            resultMap.put("exhortation", "nullValue");
+            resultMap.put("remark", "nullValue");
+            resultMap.put("actionType", "nullValue");
+            if (!resultMap.containsKey("stop_time")) {
+                resultMap.put("stop_time", "nullValue");
+            }
+            if (!resultMap.containsKey("stop_doctor_name")) {
+                resultMap.put("stop_doctor_name", "nullValue");
+            }
+        }
+        return resultList;
+    }
+
+    /**
      * 通过参数回写医嘱信息
      *
      * @param params
      * @return
      */
     @Override
-    public boolean writebackOrder(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("mnis writebackOrder params:" + key + ":" + params.get(key)));
+    public boolean writeBackOrder(Map<String, Object> params) {
+        params.keySet().forEach(key -> logger.info("mnis writebackOrder params:" + key + ":" + params.get(key)));
         try {
             if (BooleanUtils.putMapBoolean(params, "actionType")) {
                 String actionType = String.valueOf(params.get("actionType"));
@@ -338,8 +392,8 @@ public class MnisAgent implements IMnisAgent {
      * @return
      */
     @Override
-    public boolean writebackPio(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("mnis writebackPio params:" + key + ":" + params.get(key)));
+    public boolean writeBackPio(Map<String, Object> params) {
+        params.keySet().forEach(key -> logger.info("mnis writebackPio params:" + key + ":" + params.get(key)));
         try {
             if (BooleanUtils.putMapBoolean(params, "actionType")) {
                 String actionType = String.valueOf(params.get("actionType"));
@@ -364,19 +418,14 @@ public class MnisAgent implements IMnisAgent {
      * @return
      */
     @Override
-    public boolean writebackSign(Map<String, Object> params) {
-        params.keySet().stream().forEach(key -> logger.info("mnis writebackSign params:" + key + ":" + params.get(key)));
+    public boolean writeBackSign(Map<String, Object> params) {
+        params.keySet().forEach(key -> logger.info("mnis writebackSign params:" + key + ":" + params.get(key)));
         try {
             if (BooleanUtils.putMapBoolean(params, "actionType")) {
                 String actionType = String.valueOf(params.get("actionType"));
                 params.put("actionType", actionType);
                 logger.info("actionType:" + actionType);
                 turtleSignDao.add(params);
-//                if (actionType.equalsIgnoreCase(add.name())) {
-//                    hisSignDao.add(params);
-//                } else {
-//                    hisSignDao.modify(params);
-//                }
                 return true;
             } else {
                 return false;
@@ -387,4 +436,74 @@ public class MnisAgent implements IMnisAgent {
             return false;
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getLisInfo(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getLisInfo params:" + key + ":" + params.get(key)));
+        if (params.containsKey("orderNo")) {
+            String orderNoOld = String.valueOf(params.get("orderNo"));
+            String[] orderNoSplit = orderNoOld.split("_");
+            String orderNo = orderNoSplit[0];
+            String orderSubNo = orderNoSplit[1];
+            params.put("orderNo", orderNo);
+            params.put("orderSubNo", orderSubNo);
+        }
+        List<Map<String, Object>> lisList = hisLisDao.query(params);
+        for (Map<String, Object> resultMap : lisList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("results_rpt_date_time", "nullValue");
+            resultMap.put("transcriptionist_code", "nullValue");
+            resultMap.put("transcriptionist", "nullValue");
+            resultMap.put("ordering_provider_code", "nullValue");
+            resultMap.put("spcm_sample_date_time", "nullValue");
+            resultMap.put("spcm_sample_code", "nullValue");
+            resultMap.put("spcm_sample_name", "nullValue");
+            resultMap.put("send_time", "nullValue");
+            resultMap.put("sender_code", "nullValue");
+            resultMap.put("sender_name", "nullValue");
+            resultMap.put("spcm_received_date_time", "nullValue");
+            resultMap.put("spcm_received_code", "nullValue");
+            resultMap.put("spcm_received_name", "nullValue");
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getBloodInfo(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getBloodInfo params:" + key + ":" + params.get(key)));
+        String bloodProductIdStr = String.valueOf(params.get("bloodProductId"));
+        bloodProductIdStr.replace("&lt;", "<");
+        List<Map<String, Object>> bloodList = hisBloodDao.query(params);
+        for (Map<String, Object> resultMap : bloodList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("age", "nullValue");
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getBloodRecInfo(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getBloodRecInfo params:" + key + ":" + params.get(key)));
+        List<Map<String, Object>> bloodList = hisBloodDao.queryRec(String.valueOf(params.get("bloodOutNum")));
+        for (Map<String, Object> resultMap : bloodList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
 }

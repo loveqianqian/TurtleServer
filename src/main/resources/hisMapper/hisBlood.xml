@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisBloodDao">
+
+    <resultMap id="bloodMapper" type="java.util.Map">
+        <result column="blood_id" property="blood_id"/>
+        <result column="order_no" property="order_no"/>
+        <result column="group_no" property="group_no"/>
+        <result column="patient_id" property="patient_id"/>
+        <result column="series" property="series"/>
+        <result column="admission_id" property="admission_id"/>
+        <result column="patient_name" property="patient_name"/>
+        <result column="sex" property="sex"/>
+        <result column="age" property="age"/>
+        <result column="birthday" property="birthday"/>
+        <result column="bed_no" property="bed_no"/>
+        <result column="ward_code" property="ward_code"/>
+        <result column="blood_out_date" property="blood_out_date"/>
+        <result column="match_date" property="match_date"/>
+        <result column="inval_date" property="inval_date"/>
+        <result column="trans_date" property="trans_date"/>
+        <result column="blood_diagnose" property="blood_diagnose"/>
+        <result column="pat_blood_group" property="pat_blood_group"/>
+        <result column="rh" property="rh"/>
+        <result column="blood_type_name" property="blood_type_name"/>
+        <result column="blood_capacity" property="blood_capacity"/>
+        <result column="blood_unit" property="blood_unit"/>
+        <result column="blood_group" property="blood_group"/>
+    </resultMap>
+
+    <select id="query" parameterType="java.util.Map" resultMap="bloodMapper">
+        SELECT
+        br.blood_id,
+        do.order_no || '_' || do.order_sub_no || '_' || do.patient_id || '_' || do.visit_id AS order_no,
+        do.order_no AS group_no,
+        do.patient_id,
+        do.visit_id AS series,
+        ba.inp_no AS admission_id,
+        ba.PAT_NAME AS patient_name,
+        ba.PAT_SEX,
+        to_char(ba.birthday, 'yyyy-MM-dd hh24:mi:ss') as birthday,
+        pih.bed_no,
+        pih.ward_code,
+        to_char(bos.blood_out_date, 'yyyy-MM-dd hh24:mi:ss') as blood_out_date,
+        to_char(bm.match_date, 'yyyy-MM-dd hh24:mi:ss') as match_date,
+        to_char(bm.INVAL_DATE, 'yyyy-MM-dd hh24:mi:ss') as INVAL_DATE,
+        to_char(bc.trans_date, 'yyyy-MM-dd hh24:mi:ss') as trans_date,
+        ba.BLOOD_DIAGNOSE,
+        ba.pat_blood_group,
+        ba.rh,
+        (SELECT bco.blood_type_name
+        FROM BLDBANK.blood_component bco
+        WHERE bco.blood_type = bc.blood_type) AS blood_type_name,
+        br.blood_capacity,
+        br.blood_unit,
+        br.blood_group
+        FROM
+        ORDADM.doctor_orders do,
+        BLDBANK.blood_apply ba,
+        INPADM.pats_in_hospital pih,
+        MEDREC.pat_master_index pmi,
+        BLDBANK.blood_out_sheet bos,
+        BLDBANK.blood_match bm,
+        BLDBANK.blood_capacity bc,
+        BLDBANK.blood_rec br
+        <where>
+            <if test="bloodOutId!=null">
+                and br.blood_out_id=#{bloodOutId,jdbcType=VARCHAR}
+            </if>
+            <if test="bloodProductId!=null">
+                and br.blood_product_id=#{bloodProductId,jdbcType=VARCHAR}
+            </if>
+            and do.req_id = ba.apply_num
+            AND pih.patient_id = do.patient_id
+            AND pih.visit_id = do.visit_id
+            AND pmi.patient_id = do.patient_id
+            AND bos.apply_num = ba.apply_num
+            AND ba.apply_num = bm.apply_num
+            AND bc.apply_num = ba.apply_num
+            AND br.apply_num = ba.apply_num
+            AND bm.blood_id = bos.blood_id
+            AND br.blood_id = bm.blood_id
+            AND bos.match_sheet_num = bm.match_sheet_num
+        </where>
+    </select>
+
+    <resultMap id="bloodRecMapper" type="java.util.Map">
+        <result column="blood_out_num" property="blood_out_num"/>
+        <result column="blood_out_id" property="blood_out_id"/>
+        <result column="blood_group" property="blood_group"/>
+        <result column="blood_product_id" property="blood_product_id"/>
+        <result column="rh" property="rh"/>
+        <result column="blood_type_name" property="blood_type_name"/>
+        <result column="blood_type" property="blood_type"/>
+        <result column="blood_capacity" property="blood_capacity"/>
+        <result column="blood_unit" property="blood_unit"/>
+        <result column="match_result" property="match_result"/>
+    </resultMap>
+
+    <select id="queryRec" resultMap="bloodRecMapper" parameterType="java.lang.String">
+        SELECT
+            br.blood_out_num,
+            br.blood_out_id,
+            br.blood_product_id,
+            br.blood_group,
+            br.rh,
+            br.blood_type,
+            bc.blood_type_name,
+            br.blood_capacity,
+            br.blood_unit,
+            bm.match_result
+        FROM BLDBANK.blood_rec br, BLDBANK.blood_component bc, BLDBANK.blood_match bm
+        <where>
+            <if test="bloodOutNum!=null">
+                and br.blood_out_num=#{bloodOutNum,jdbcType=VARCHAR}
+            </if>
+            AND br.blood_type = bc.blood_type (+)
+            AND br.blood_id = bm.blood_id
+            AND br.apply_num = bm.apply_num
+        </where>
+    </select>
+
+
+</mapper>

@@ -51,6 +51,14 @@ public interface INIAgent {
     List<Map<String, Object>> getPatient(Map<String, Object> params);
 
     /**
+     * 当需要病人基本信息的时候调用
+     *
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getPatientOut(Map<String, Object> params);
+
+    /**
      * 当需要医嘱数据的时候调用
      *
      * @param params

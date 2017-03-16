@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * com.heren.turtle.server.dao
@@ -41,10 +42,21 @@ public interface HisPatientDao extends BaseDao {
     /**
      * 查询出院病人
      *
-     * @param items
+     * @param series
+     * @param patientId
      * @return
      */
-    List<Map<String, Object>> queryPatOutHos(@Param(value = "items") List<String> items);
+    List<Map<String, Object>> queryPatOutHos(@Param(value = "patientId") String patientId, @Param(value = "series") String series);
 
+    /**
+     * @param params
+     * @return
+     */
     List<Map<String, Object>> queryNIPatient(Map<String, Object> params);
+
+    /**
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> queryNIPatientOut(Map<String, Object> params);
 }

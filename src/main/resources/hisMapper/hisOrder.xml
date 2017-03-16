@@ -21,76 +21,170 @@
 <mapper namespace="com.heren.turtle.server.dao.hisDao.HisOrderDao">
 
     <resultMap id="orderMapper" type="java.util.Map">
-        <result column="order_no" property="order_no"/>
-        <result column="group_no" property="group_no"/>
-        <result column="order_code" property="order_code"/>
-        <result column="order_name" property="order_name"/>
-        <result column="drug_name" property="drug_name"/>
-        <result column="patient_id" property="patient_id"/>
+        <result column="ORDER_NO" property="order_no"/>
+        <result column="GROUP_NO" property="group_no"/>
+        <result column="ORG_ORDER_SUB_NO" property="org_order_sub_no"/>
+        <result column="ORDER_CODE" property="order_code"/>
+        <result column="ORDER_NAME" property="order_name"
+                typeHandler="com.heren.turtle.server.core.EmptyStringTypeHandler"/>
+        <result column="DRUG_NAME" property="drug_name"/>
+        <result column="PATIENT_ID" property="patient_id"/>
         <result column="series" property="series"/>
-        <result column="admission_id" property="admission_id"/>
-        <result column="dept_code" property="dept_code"/>
-        <result column="warde_code" property="ward_code"/>
-        <result column="frequency_code" property="frequency_code"/>
+        <result column="ADMISSION_ID" property="admission_id"/>
+        <result column="DEPT_CODE" property="dept_code"/>
+        <result column="WARDE_CODE" property="ward_code"/>
+        <result column="FREQUENCY_CODE" property="frequency_code"/>
         <result column="dosage" property="dosage"/>
-        <result column="dosage_units" property="dosage_units"/>
-        <result column="supply_name" property="supply_name"/>
-        <result column="supply_code" property="supply_code"/>
-        <result column="order_status" property="order_status"/>
-        <result column="order_class" property="order_class"/>
-        <result column="order_class_name" property="order_class_name"/>
-        <result column="long_once_flag" property="long_once_flag"/>
-        <result column="start_time" property="start_time"/>
-        <result column="enter_time" property="enter_time"/>
-        <result column="stop_time" property="stop_time"/>
-        <result column="doctor_name" property="doctor_name"/>
-        <result column="stop_doctor_name" property="stop_doctor_name"/>
+        <result column="DOSAGE_UNITS" property="dosage_units"/>
+        <result column="SUPPLY_NAME" property="supply_name"/>
+        <result column="SUPPLY_CODE" property="supply_code"/>
+        <result column="ORDER_STATUS" property="order_status"/>
+        <result column="ORDER_CLASS" property="order_class"/>
+        <result column="ORDER_CLASS_NAME" property="order_class_name"/>
+        <result column="LONG_ONCE_FLAG" property="long_once_flag"/>
+        <result column="START_TIME" property="start_time"/>
+        <result column="ENTER_TIME" property="enter_time"/>
+        <result column="STOP_TIME" property="stop_time"/>
+        <result column="DOCTOR_NAME" property="doctor_name"/>
+        <result column="STOP_DOCTOR_NAME" property="stop_doctor_name"/>
+        <result column="BED_NO" property="bed_no"/>
+        <result column="WARD_CODE" property="ward_code"/>
+        <result column="ADMISSION_DATE_TIME" property="admission_date_time"/>
+        <result column="BILLING_DATE_TIME" property="billing_date_time"/>
+        <result column="DOSAGE_UNIT" property="dosage_unit"/>
+        <result column="SETTLED_INDICATOR" property="settled_indicator"/>
+        <result column="ADM_WARD_DATE_TIME" property="adm_ward_date_time"/>
+        <result column="DIAGNOSIS" property="diagnosis"/>
+        <result column="DOCTOR_IN_CHARGE" property="doctor_in_charge"/>
+        <result column="TOTAL_COSTS" property="total_costs"/>
+        <result column="PREPAYMENTS" property="prepayments"/>
+        <result column="NURSING_CLASS" property="nursing_class"/>
+        <result column="VISIT_ID" property="visit_id"/>
+        <result column="ORDER_SUB_NO" property="order_sub_no"/>
+        <result column="PATIENT_CONDITION" property="patient_condition"/>
+        <result column="TOTAL_CHARGES" property="total_charges"/>
+        <result column="drug_spec" property="drug_spec"/>
     </resultMap>
 
     <select id="queryOrders" parameterType="java.util.Map" resultMap="orderMapper">
-        SELECT * from ip_mnis_order_view
+        SELECT
+        im.order_no,
+        im.GROUP_NO,
+        im.ORDER_SUB_NO,
+        im.ORDER_CODE,
+        im.DRUG_NAME,
+        im.ORDER_NAME,
+        im.PATIENT_ID,
+        im.SERIES,
+        im.ADMISSION_ID,
+        im.DEPT_CODE,
+        im.WARD_CODE,
+        im.FREQUENCY_CODE,
+        im.DOSAGE,
+        im.DOSAGE_UNIT,
+        im.SUPPLY_CODE,
+        im.SUPPLY_NAME,
+        im.ORDER_STATUS,
+        im.ORDER_CLASS,
+        im.ORDER_CLASS_NAME,
+        im.LONG_ONCE_FLAG,
+        im.START_TIME,
+        im.ENTER_TIME,
+        im.STOP_TIME,
+        im.DOCTOR_NAME,
+        im.STOP_DOCTOR_NAME,
+        im.drug_spec
+        from ip_mnis_order_view im
+        INNER JOIN pats_in_hospital pi
+        on (pi.patient_id=im.PATIENT_ID
+        and pi.visit_id=im.SERIES
+        and pi.ward_code=#{wardCode,jdbcType=VARCHAR})
         <where>
-            <if test="items!=null">
-                AND
-                <foreach collection="items" item="item" open="ORDER_NO in (" separator="," close=")">
-                    #{item,jdbcType=VARCHAR}
-                </foreach>
+            <if test="orderNo!=null">
+                and im.GROUP_NO=#{orderNo,jdbcType=VARCHAR}
+            </if>
+            <if test="orderSubNo!=null">
+                and im.order_sub_no=#{orderSubNo,jdbcType=VARCHAR}
             </if>
             <if test="orderClassItems!=null">
                 AND
-                <foreach collection="orderClassItems" item="olItems" open="ORDER_CLASS in (" separator=","
+                <foreach collection="orderClassItems" item="olItems" open="im.ORDER_CLASS in (" separator=","
                          close=")">
                     #{olItems,jdbcType=VARCHAR}
                 </foreach>
             </if>
             <if test="supplyCodeItems!=null">
                 AND
-                <foreach collection="supplyCodeItems" item="scItems" open="SUPPLY_CODE in (" separator=","
+                <foreach collection="supplyCodeItems" item="scItems" open="im.SUPPLY_CODE in (" separator=","
                          close=")">
                     #{scItems,jdbcType=VARCHAR}
                 </foreach>
             </if>
-            <if test="patientId!=null">
-                and patient_id=#{patientId,jdbcType=VARCHAR}
-            </if>
-            <if test="series!=null">
-                and series=#{series,jdbcType=VARCHAR}
-            </if>
+            and im.patient_id=#{patientId,jdbcType=VARCHAR}
+            and im.series=#{series,jdbcType=VARCHAR}
             <if test="longOnceFlag!=null">
-                and long_once_flag=#{longOnceFlag,jdbcType=VARCHAR}
+                and im.long_once_flag=#{longOnceFlag,jdbcType=VARCHAR}
             </if>
             <if test="orderStatus!=null">
-                and ORDER_STATUS=#{orderStatus,jdbcType=VARCHAR}
+                and im.ORDER_STATUS=#{orderStatus,jdbcType=VARCHAR}
             </if>
-            <if test="deptCode!=null">
-                and dept_code=#{deptCode,jdbcType=VARCHAR}
+            <if test="wardCode!=null">
+                and im.ward_code=#{wardCode,jdbcType=VARCHAR}
             </if>
             <if test="startTime!=null">
-                and start_time>=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and im.start_time>=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="endTime!=null">
-                <![CDATA[ and start_time<to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+                <![CDATA[ and im.start_time<to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
+        </where>
+    </select>
+
+    <select id="queryDrugOrders" parameterType="java.util.Map" resultMap="orderMapper">
+        SELECT
+        im.order_no,
+        im.GROUP_NO,
+        im.ORDER_SUB_NO,
+        im.ORDER_CODE,
+        im.DRUG_NAME,
+        im.ORDER_NAME,
+        im.PATIENT_ID,
+        im.SERIES,
+        im.ADMISSION_ID,
+        im.DEPT_CODE,
+        im.WARD_CODE,
+        im.FREQUENCY_CODE,
+        im.DOSAGE,
+        im.DOSAGE_UNIT,
+        im.SUPPLY_CODE,
+        im.SUPPLY_NAME,
+        im.ORDER_STATUS,
+        im.ORDER_CLASS,
+        im.ORDER_CLASS_NAME,
+        im.LONG_ONCE_FLAG,
+        im.START_TIME,
+        im.ENTER_TIME,
+        im.STOP_TIME,
+        im.DOCTOR_NAME,
+        im.STOP_DOCTOR_NAME,
+        im.drug_spec
+        from ip_mnis_drug_order_view im
+        INNER JOIN pats_in_hospital pi
+        on (pi.patient_id=im.PATIENT_ID
+        and pi.visit_id=im.SERIES
+        and pi.ward_code=#{wardCode,jdbcType=VARCHAR})
+        <where>
+            <if test="patientId!=null">
+                and im.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and im.series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="longOnceFlag!=null">
+                and im.long_once_flag=#{longOnceFlag,jdbcType=VARCHAR}
+            </if>
+            and im.ORDER_STATUS='2'
+            and (im.supply_name like '%输液%' or im.supply_name like '%注射%')
         </where>
     </select>
 

@@ -2,8 +2,12 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxws="http://cxf.apache.org/jaxws"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://cxf.apache.org/jaxws
+        http://cxf.apache.org/schemas/jaxws.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
 
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-extension-soap.xml"/>
@@ -13,7 +17,25 @@ http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd http://www.s
     <context:component-scan base-package="com.heren.turtle.server.service"/>
 
     <jaxws:endpoint implementor="#oaWebService" address="/oaWebService"/>
-    <jaxws:endpoint implementor="#mnisWebService" address="/mnisWebService"/>
+    <jaxws:endpoint implementor="#mnisWebService" address="/mnisWebService">
+        <jaxws:outInterceptors>
+            <bean class="org.apache.cxf.binding.soap.saaj.SAAJOutInterceptor"/>
+            <bean class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
+                <constructor-arg>
+                    <map>
+                        <entry key="action" value="UsernameToken"/>
+                        <entry key="user" value="mnis"/>
+                        <entry key="passwordType" value="PasswordText"/>
+                        <entry key="passwordCallbackRef">
+                            <!-- 回调函数引用 -->
+                            <ref bean="myPasswordCallback"/>
+                        </entry>
+                    </map>
+                </constructor-arg>
+            </bean>
+        </jaxws:outInterceptors>
+    </jaxws:endpoint>
     <jaxws:endpoint implementor="#niWebService" address="/niWebService"/>
+    <jaxws:endpoint implementor="#lisWebService" address="/lisWebService"/>
 
 </beans>

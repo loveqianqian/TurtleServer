@@ -53,7 +53,7 @@
     <select id="queryPatInHos" parameterType="java.util.Map" resultMap="patientMapper">
         select pih.patient_id,
         pih.visit_id,
-        pih.patient_id || '_' || pih.visit_id as admission_id,
+        pmi.inp_no as admission_id,
         pmi.name,
         pmi.sex,
         pih.dept_code,
@@ -75,7 +75,7 @@
         pih.total_costs,
         pih.prepayments as pre_payment,
         pih.total_charges as self_payment,
-        decode(pih.settled_indicator, '0', '1', '1', null) as arrear_flag,
+        '0' as arrear_flag,
         pv.attending_doctor as doctor_name,
         pv.isalergy as allergy
         from pats_in_hospital pih,
@@ -97,15 +97,37 @@
         </where>
     </select>
 
-    <select id="queryPatOutHos" parameterType="java.util.Arrays" resultMap="patientMapper">
-        select *
-        from ip_pat_out_hos_view i
+    <select id="queryPatOutHos" parameterType="java.lang.String" resultMap="patientMapper">
+        select pv.patient_id,
+        pv.visit_id as series,
+        pmi.inp_no as admission_id,
+        pmi.name,
+        pmi.sex,
+        pv.dept_discharge_from as dept_code,
+        (select dd.dept_name from dept_dict dd where dd.dept_code=pv.dept_discharge_from) as dept_name,
+        (select dvw.ward_code from dept_vs_ward dvw where pv.dept_discharge_from=dvw.dept_code) as ward_code,
+        (select dd.dept_name from dept_dict dd ,dept_vs_ward dvw where dvw.ward_code=dd.dept_code and pv.dept_discharge_from=dvw.dept_code ) as  ward_name,
+        to_char(pmi.date_of_birth,'yyyy-MM-dd hh24:mi:ss') as birthday,
+        pmi.phone_number_home as phone,
+        pmi.mailing_address as address,
+        to_char( pv.admission_date_time,'yyyy-MM-dd hh24:mi:ss') as admission_time,
+        to_char( pv.discharge_date_time,'yyyy-MM-dd hh24:mi:ss') as discharge_time,
+        pv.insurance_type as charge_type,
+        pv.total_costs as total_costs,
+        pv.total_payments self_payment,
+        pv.attending_doctor as doctor_name,
+        pv.isalergy as allergy
+        from pat_master_index pmi, pat_visit pv, adt_log al
         <where>
-            <if test="items!=null">
-                and
-                <foreach collection="items" item="item" open="admission_id in(" separator="," close=")">
-                    #{item,jdbcType=VARCHAR}
-                </foreach>
+            and pv.patient_id = pmi.patient_id(+)
+            and al.patient_id(+) = pv.patient_id
+            and al.action = 'F'
+            and al.visit_id(+) = pv.visit_id
+            <if test="patientId!=null">
+                and pv.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and pv.visit_id=#{series,jdbcType=VARCHAR}
             </if>
         </where>
     </select>
@@ -144,19 +166,18 @@
         pih.ward_code,
         pih.bed_no,
         pih.doctor_in_charge,
-        to_char(pih.admission_date_time, 'yyyy-MM-dd hh24:mi:ss') AS admission_date_time,
+        to_char(pv.admission_date_time, 'yyyy-MM-dd hh24:mi:ss') AS admission_date_time,
         to_char(pv.discharge_date_time, 'yyyy-MM-dd hh24:mi:ss') AS discharge_date_time,
         pv.dept_admission_to AS in_hos_dept,
-        dvw.ward_code AS in_hos_dist,
+        (select dvw.ward_code from dept_vs_ward dvw where dvw.dept_code =pv.dept_admission_to) as in_hos_dist,
         pmi.phone_number_home,
         pmi.mailing_address,
         pmi.inp_no
-        FROM pat_master_index pmi, pats_in_hospital pih, pat_visit pv, dept_vs_ward dvw
+        FROM pat_master_index pmi, pats_in_hospital pih, pat_visit pv
         <where>
             and pmi.patient_id = pih.patient_id
             AND pmi.patient_id = pv.patient_id
             AND pih.visit_id = pv.visit_id
-            AND dvw.dept_code = pv.dept_admission_to
             <if test="patientId!=null">
                 AND pih.patient_id=#{patientId,jdbcType=VARCHAR}
             </if>
@@ -169,11 +190,53 @@
             <if test="currentDist!=null">
                 AND pih.ward_code=#{currentDist,jdbcType=VARCHAR}
             </if>
+            <if test="dateTime!=null">
+                and trunc(pv.admission_date_time)=to_date(#{dateTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
             <if test="startTime!=null">
                 and pih.admission_date_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="endTime!=null">
                 and pih.admission_date_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+        </where>
+    </select>
+
+    <select id="queryNIPatientOut" resultMap="patMap" parameterType="java.util.Map">
+        SELECT pv.patient_id || '_' || pv.visit_id AS req_no,
+        pv.patient_id,
+        pv.visit_id,
+        pmi.name,
+        pmi.sex,
+        pmi.id_no,
+        to_char(pmi.date_of_birth, 'yyyy-MM-dd') AS birthday,
+        to_char(pv.admission_date_time, 'yyyy-MM-dd hh24:mi:ss') AS admission_date_time,
+        to_char(pv.discharge_date_time, 'yyyy-MM-dd hh24:mi:ss') AS discharge_date_time,
+        pv.dept_admission_to AS in_hos_dept,
+        (select dvw.ward_code from dept_vs_ward dvw where dvw.dept_code = pv.dept_admission_to) as in_hos_dist,
+        pmi.phone_number_home,
+        pmi.mailing_address,
+        pmi.inp_no
+        FROM pat_master_index pmi, pat_visit pv
+        <where>
+            AND pmi.patient_id = pv.patient_id
+            <if test="patientId!=null">
+                AND pih.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                AND pih.VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="currentDept!=null">
+                AND pv.dept_discharge_from=#{currentDept,jdbcType=VARCHAR}
+            </if>
+            <if test="dateTime!=null">
+                and trunc(pv.discharge_date_time)=to_date(#{dateTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="startTime!=null">
+                and pv.discharge_date_time &gt;=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+            </if>
+            <if test="endTime!=null">
+                and pv.discharge_date_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
         </where>
     </select>
