@@ -125,21 +125,36 @@
     </resultMap>
 
     <select id="queryTransfer" resultMap="transferMapper" parameterType="java.util.Map">
-        SELECT t.PATIENT_ID,
+        SELECT
+        t.PATIENT_ID,
         t.visit_id as series,
-        (select pmi.inp_no from MEDREC.pat_master_index pmi where pmi.patient_id = t.PATIENT_ID) as admission_id,
-        t.dept_stayed turn_in_dept_code,
-        (select dd.dept_name from COMM.dept_dict dd where dd.dept_code = t.dept_stayed) as turn_in_dept_name,
-        (select dvw.ward_code from COMM.dept_vs_ward dvw where t.dept_stayed = dvw.dept_code) as turn_in_ward_code,
-        (select dd.dept_name from COMM.dept_vs_ward dvw, COMM.dept_dict dd where dd.dept_code = dvw.ward_code
-        and t.dept_stayed = dvw.dept_code) as turn_in_ward_name,
-        t.admission_date_time as turn_in_time,
+        (select pmi.inp_no
+        from MEDREC.pat_master_index pmi
+        where pmi.patient_id = t.PATIENT_ID) as admission_id,
+        t.dept_stayed as turn_out_dept_code,
+        (select dd.dept_name
+        from COMM.dept_dict dd
+        where dd.dept_code = t.dept_stayed) as turn_out_dept_name,
+        (select dvw.ward_code
+        from COMM.dept_vs_ward dvw
+        where t.dept_stayed = dvw.dept_code) as turn_out_ward_code,
+        (select dd.dept_name
+        from COMM.dept_vs_ward dvw, COMM.dept_dict dd
+        where dd.dept_code = dvw.ward_code
+        and t.dept_stayed = dvw.dept_code) as turn_out_ward_name,
         t.discharge_date_time as turn_out_time,
-        t.dept_transfered_to as turn_out_dept_code,
-        (select dd.dept_name from COMM.dept_dict dd where dd.dept_code = t.dept_transfered_to) as turn_out_dept_name,
-        (select dvw.ward_code from COMM.dept_vs_ward dvw where t.dept_transfered_to = dvw.dept_code) as turn_out_ward_code,
-        (select dd.dept_name from COMM.dept_vs_ward dvw, COMM.dept_dict dd where dd.dept_code = dvw.ward_code and t.dept_transfered_to = dvw.dept_code) as turn_out_ward_name,
-        t.bed_label as turn_in_bed_no
+        t.bed_label as turn_out_bed_no,
+        t.dept_transfered_to as turn_in_dept_code,
+        (select dd.dept_name
+        from COMM.dept_dict dd
+        where dd.dept_code = t.dept_transfered_to) as turn_in_dept_name,
+        (select dvw.ward_code
+        from COMM.dept_vs_ward dvw
+        where t.dept_transfered_to = dvw.dept_code) as turn_in_ward_code,
+        (select dd.dept_name
+        from COMM.dept_vs_ward dvw, COMM.dept_dict dd
+        where dd.dept_code = dvw.ward_code
+        and t.dept_transfered_to = dvw.dept_code) as turn_in_ward_name
         from MEDREC.transfer t
         <where>
             and t.dept_transfered_to is not null
@@ -153,7 +168,8 @@
                 and t.patient_id=#{patientId,jdbcType=VARCHAR}
             </if>
             <if test="turnOutWardCode!=null">
-                and t.dept_transfered_to=(select de.dept_code from dept_vs_ward de where de.ward_code=#{turnOutWardCode,jdbcType=VARCHAR})
+                and t.dept_stayed in (select de.dept_code from dept_vs_ward de where
+                de.ward_code=#{turnOutWardCode,jdbcType=VARCHAR})
             </if>
             <if test="series!=null">
                 and t.visit_id=#{series,jdbcType=VARCHAR}
@@ -165,7 +181,7 @@
         select al.patient_id,
         al.visit_id as series,
         (select pmi.inp_no from MEDREC.pat_master_index pmi where pmi.patient_id = al.PATIENT_ID) as admission_id,
-        (select dd.dept_name from comm.dept_dict dd  where al.ward_code = dd.dept_code) as turn_in_ward_name,
+        (select dd.dept_name from comm.dept_dict dd where al.ward_code = dd.dept_code) as turn_in_ward_name,
         al.ward_code as turn_in_ward_code,
         (select dd.dept_name from comm.dept_dict dd where dd.dept_code = al.DEPT_CODE) as turn_in_dept_name,
         al.DEPT_CODE as turn_in_dept_code,

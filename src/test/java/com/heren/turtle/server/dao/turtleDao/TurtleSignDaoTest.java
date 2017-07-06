@@ -55,7 +55,7 @@ public class TurtleSignDaoTest {
                 "</response>" +
                 "</payload>");
         query.put("vitalSignDetailsType", "xml");
-        signDao.add(query);
+        signDao.addCommon(query);
     }
 
     @Test

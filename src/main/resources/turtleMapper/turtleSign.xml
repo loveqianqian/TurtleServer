@@ -17,135 +17,413 @@
 <mapper namespace="com.heren.turtle.server.dao.turtleDao.TurtleSignDao">
 
     <resultMap id="signMapper" type="java.util.Map">
-        <result column="id" property="id"/>
-        <result column="series" property="series"/>
-        <result column="patient_id" property="patientId"/>
+        <result column="COL_ID" property="colId"/>
+        <result column="PATIENT_ID" property="patientId"/>
+        <result column="SERIES" property="series"/>
+        <result column="ADMISSION_ID" property="admissionId"/>
         <result column="DEPT_CODE" property="deptCode"/>
+        <result column="WARD_CODE" property="wardCode"/>
+        <result column="BED_NO" property="bedNo"/>
+        <result column="PATIENT_NAME" property="patientName"/>
+        <result column="SEX_CODE" property="sexCode"/>
+        <result column="AGE_YEAR" property="ageYear"/>
+        <result column="AGE_MONTH" property="ageMonth"/>
+        <result column="DISEASE_DIAGNOSE_NAME" property="diseaseDiagnoseName"/>
+        <result column="IN_HOS_TIME" property="inHosTime"/>
+        <result column="REAL_IN_HOS_TIME" property="realInHosTime"/>
+        <result column="AFTER_OPERATION_TIME" property="afterOperationTime"/>
         <result column="PLAN_TIME" property="planTime"/>
         <result column="RECORD_TIME" property="recordTime"/>
-        <result column="VITALSIGN_NAME" property="vitalsignName"/>
+        <result column="BREATHE_FREQUENCY" property="breatheFrequency"/>
+        <result column="PULSE" property="pulse"/>
+        <result column="PACER_HEART_RATE" property="pacerHeartRate"/>
+        <result column="TEMPERATURE" property="temperature"/>
+        <result column="SYSTOLIC_PRESSURE" property="systolicPressure"/>
+        <result column="DIASTOLIC_PRESSURE" property="diastolicPressure"/>
+        <result column="WEIGHT" property="weight"/>
+        <result column="GIRTH_OF_PAUNCH" property="girthOfPaunch"/>
+        <result column="IS_VENTILATOR" property="isVentilator"/>
+        <result column="OBSERVE_NAME" property="observeName"/>
+        <result column="OBSERVE_CODE" property="observeCode"/>
+        <result column="OBSERVE_VAL" property="observeVal"/>
+        <result column="OBSERVE_UNIT" property="observeUnit"/>
+        <result column="REMARK" property="remark"/>
+        <result column="RECORD_NURSE_NAME" property="recordNurseName"/>
+        <result column="NURSE_RECORD_TIME" property="nurseRecordTime"/>
+        <result column="USER_ID" property="userId"/>
         <result column="UPDATE_TIME" property="updateTime"/>
         <result column="ACTION_TYPE" property="actionType"/>
-        <result column="VITALSIGN_DETAILS_TYPE" property="vitalsignDetailsType"/>
-        <result column="VITALSIGN_DETAILS" property="vitalsignDetails" jdbcType="CLOB" javaType="java.lang.String"
-                typeHandler="com.heren.turtle.server.core.OracleClobTypeHandler"/>
     </resultMap>
 
-    <insert id="add" parameterType="java.util.Map">
+    <resultMap id="dictMapper" type="java.util.Map">
+        <result column="COL_ID" property="colId"/>
+        <result column="col_name" property="colName"/>
+        <result column="col_code" property="colCode"/>
+    </resultMap>
+
+    <select id="queryDict" parameterType="java.lang.String" resultMap="dictMapper">
+        SELECT
+            t.COL_CODE,
+            t.COL_NAME
+        FROM T_MNIS_HIS_DICT t
+        WHERE t.COL_TYPE = '1'
+    </select>
+
+    <insert id="addCommon" parameterType="java.util.Map">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
             select sign_auto_id.NEXTVAL FROM dual
         </selectKey>
-        insert into MNIS_VITALSIGN
+        insert into MNIS_VITAL_SIGN
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            id,
-            <if test="series!=null">
-                series,
-            </if>
+            COL_ID,
             <if test="patientId!=null">
-                patient_id,
+                PATIENT_ID,
+            </if>
+            <if test="series!=null">
+                SERIES,
+            </if>
+            <if test="admissionId!=null">
+                ADMISSION_ID,
             </if>
             <if test="deptCode!=null">
                 DEPT_CODE,
             </if>
+            <if test="wardCode!=null">
+                WARD_CODE,
+            </if>
+            <if test="bedNo!=null">
+                BED_NO,
+            </if>
+            <if test="patientName!=null">
+                PATIENT_NAME,
+            </if>
+            <if test="sexCode!=null">
+                SEX_CODE,
+            </if>
+            <if test="ageYear!=null">
+                AGE_YEAR,
+            </if>
+            <if test="ageMonth!=null">
+                AGE_MONTH,
+            </if>
+            <if test="diseaseDiagnoseName!=null">
+                DISEASE_DIAGNOSE_NAME,
+            </if>
+            <if test="inHosTime!=null">
+                IN_HOS_TIME,
+            </if>
+            <if test="realInHosTime!=null">
+                REAL_IN_HOS_TIME,
+            </if>
+            <if test="afterOperationTime!=null">
+                AFTER_OPERATION_TIME,
+            </if>
             <if test="planTime!=null">
                 PLAN_TIME,
             </if>
-            <if test="recordTime!=null">
-                RECORD_TIME,
-            </if>
-            <if test="vitalSignName!=null">
-                VITALSIGN_NAME,
-            </if>
-            <if test="updateTime!=null">
-                UPDATE_TIME,
-            </if>
-            <if test="actionType!=null">
-                ACTION_TYPE,
-            </if>
-            <if test="vitalSignDetails!=null">
-                VITALSIGN_DETAILS,
-            </if>
-            <if test="vitalSignDetailsType!=null">
-                VITALSIGN_DETAILS_TYPE,
-            </if>
-            action_date
         </trim>
         VALUES
         <trim prefix="(" suffix=")" suffixOverrides=",">
             #{id,jdbcType=NUMERIC},
+            <if test="patientId!=null">
+                #{patientId,jdbcType=VARCHAR},
+            </if>
             <if test="series!=null">
                 #{series,jdbcType=VARCHAR},
             </if>
-            <if test="patientId!=null">
-                #{patientId,jdbcType=VARCHAR},
+            <if test="admissionId!=null">
+                #{admissionId,jdbcType=VARCHAR},
             </if>
             <if test="deptCode!=null">
                 #{deptCode,jdbcType=VARCHAR},
             </if>
+            <if test="wardCode!=null">
+                #{wardCode,jdbcType=VARCHAR},
+            </if>
+            <if test="bedNo!=null">
+                #{bedNo,jdbcType=VARCHAR},
+            </if>
+            <if test="patientName!=null">
+                #{patientName,jdbcType=VARCHAR},
+            </if>
+            <if test="sexCode!=null">
+                #{sexCode,jdbcType=VARCHAR},
+            </if>
+            <if test="ageYear!=null">
+                #{ageYear,jdbcType=VARCHAR},
+            </if>
+            <if test="ageMonth!=null">
+                #{ageMonth,jdbcType=VARCHAR},
+            </if>
+            <if test="diseaseDiagnoseName!=null">
+                #{diseaseDiagnoseName,jdbcType=VARCHAR},
+            </if>
+            <if test="inHosTime!=null">
+                to_date(#{inHosTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+            <if test="realInHosTime!=null">
+                #{realInHosTime,jdbcType=VARCHAR},
+            </if>
+            <if test="afterOperationTime!=null">
+                #{afterOperationTime,jdbcType=VARCHAR},
+            </if>
             <if test="planTime!=null">
                 to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
-            <if test="recordTime!=null">
-                to_date(#{recordTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
-            </if>
-            <if test="vitalSignName!=null">
-                #{vitalsignSval1,jdbcType=VARCHAR},
-            </if>
-            <if test="updateTime!=null">
-                to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
-            </if>
-            <if test="actionType!=null">
-                #{actionType,jdbcType=VARCHAR},
-            </if>
-            <if test="vitalSignDetails!=null">
-                #{vitalSignDetails,jdbcType=CLOB},
-            </if>
-            <if test="vitalSignDetailsType!=null">
-                #{vitalSignDetailsType,jdbcType=VARCHAR},
-            </if>
-            sysdate
         </trim>
     </insert>
 
     <update id="modify" parameterType="java.util.Map">
-        update MNIS_VITALSIGN
+        update MNIS_VITAL_SIGN t
         <set>
-            <if test="deptCode!=null">
-                DEPT_CODE=#{deptCode,jdbcType=VARCHAR},
+            <if test="admissionId!=null">
+                t.admission_id=#{admissionId,jdbcType=VARCHAR},
             </if>
-            <if test="planTime!=null">
-                PLAN_TIME=to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            <if test="bedNo!=null">
+                t.bed_no=#{bedNo,jdbcType=VARCHAR},
+            </if>
+            <if test="patientName!=null">
+                t.patient_name=#{patientName,jdbcType=VARCHAR},
+            </if>
+            <if test="sexCode!=null">
+                t.sex_code=#{sexCode,jdbcType=VARCHAR},
+            </if>
+            <if test="ageYear!=null">
+                t.age_year=#{ageYear,jdbcType=VARCHAR},
+            </if>
+            <if test="ageMonth!=null">
+                t.age_month=#{ageMonth,jdbcType=VARCHAR},
+            </if>
+            <if test="diseaseDiagnoseName!=null">
+                t.DISEASE_DIAGNOSE_NAME=#{diseaseDiagnoseName,jdbcType=VARCHAR},
+            </if>
+            <if test="inHosTime!=null">
+                t.IN_HOS_TIME=to_date(#{inHosTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
             <if test="recordTime!=null">
-                RECORD_TIME=to_date(#{recordTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+                t.RECORD_TIME=to_date(#{recordTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
-            <if test="vitalSignName!=null">
-                VITALSIGN_NAME=#{vitalSignName,jdbcType=VARCHAR},
+            <if test="breatheFrequency!=null">
+                t.BREATHE_FREQUENCY=#{breatheFrequency,jdbcType=VARCHAR},
+            </if>
+            <if test="pulse!=null">
+                t.PULSE=#{pulse,jdbcType=VARCHAR},
+            </if>
+            <if test="pacerHeartRate!=null">
+                t.PACER_HEART_RATE=#{pacerHeartRate,jdbcType=VARCHAR},
+            </if>
+            <if test="temperature!=null">
+                t.TEMPERATURE=#{temperature,jdbcType=VARCHAR},
+            </if>
+            <if test="systolicPressure!=null">
+                t.SYSTOLIC_PRESSURE=#{systolicPressure,jdbcType=VARCHAR},
+            </if>
+            <if test="diastolicPressure!=null">
+                t.DIASTOLIC_PRESSURE=#{diastolicPressure,jdbcType=VARCHAR},
+            </if>
+            <if test="weight!=null">
+                t.WEIGHT=#{weight,jdbcType=VARCHAR},
+            </if>
+            <if test="girthOfPaunch!=null">
+                t.GIRTH_OF_PAUNCH=#{girthOfPaunch,jdbcType=VARCHAR},
+            </if>
+            <if test="isVentilator!=null">
+                t.IS_VENTILATOR=#{isVentilator,jdbcType=VARCHAR},
+            </if>
+            <if test="observeName!=null">
+                t.OBSERVE_NAME=#{observeName,jdbcType=VARCHAR},
+            </if>
+            <if test="observeCode!=null">
+                t.OBSERVE_CODE=#{observeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="observeVal!=null">
+                t.OBSERVE_VAL=#{observeVal,jdbcType=VARCHAR},
+            </if>
+            <if test="observeUnit!=null">
+                t.OBSERVE_UNIT=#{observeUnit,jdbcType=VARCHAR},
+            </if>
+            <if test="remark!=null">
+                t.REMARK=#{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="recordNurseName!=null">
+                t.RECORD_NURSE_NAME=#{recordNurseName,jdbcType=VARCHAR},
+            </if>
+            <if test="recordNurseTime!=null">
+                t.NURSE_RECORD_TIME=to_date(#{recordNurseTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
             <if test="updateTime!=null">
-                UPDATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
-            </if>
-            <if test="actionType!=null">
-                ACTION_TYPE=#{actionType,jdbcType=VARCHAR},
-            </if>
-            <if test="vitalSignDetails!=null">
-                VITALSIGN_DETAILS=#{vitalSignDetails,jdbcType=CLOB},
-            </if>
-            <if test="vitalSignDetailsType!=null">
-                VITALSIGN_DETAILS_TYPE=#{vitalSignDetailsType,jdbcType=VARCHAR},
+                t.UPDATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
             </if>
         </set>
         <where>
-            <if test="series!=null">
-                and series=#{series,jdbcType=VARCHAR}
+            <if test="planTime!=null">
+                and t.plan_time=to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
             </if>
             <if test="patientId!=null">
-                and patient_id=#{patientId,jdbcType=VARCHAR}
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
             </if>
-            <if test="updateTime!=null">
-                and UPDATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+            <if test="series!=null">
+                and t.series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="deptCode!=null">
+                and t.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null">
+                and t.ward_code=#{wardCode,jdbcType=VARCHAR}
             </if>
         </where>
     </update>
 
+    <update id="modifyForNull" parameterType="java.util.Map">
+        UPDATE MNIS_VITAL_SIGN t
+        <set>
+            <if test="recordTime=='nullValue'">
+                t.RECORD_TIME=null,
+            </if>
+            <if test="breatheFrequency=='nullValue'">
+                t.BREATHE_FREQUENCY=null,
+            </if>
+            <if test="pulse=='nullValue'">
+                t.PULSE=null,
+            </if>
+            <if test="pacerHeartRate=='nullValue'">
+                t.PACER_HEART_RATE=null,
+            </if>
+            <if test="temperature=='nullValue'">
+                t.TEMPERATURE=null,
+            </if>
+            <if test="systolicPressure=='nullValue'">
+                t.SYSTOLIC_PRESSURE=null,
+            </if>
+            <if test="diastolicPressure=='nullValue'">
+                t.DIASTOLIC_PRESSURE=null,
+            </if>
+            <if test="weight=='nullValue'">
+                t.WEIGHT=null,
+            </if>
+            <if test="girthOfPaunch=='nullValue'">
+                t.GIRTH_OF_PAUNCH=null,
+            </if>
+            <if test="isVentilator=='nullValue'">
+                t.IS_VENTILATOR=null,
+            </if>
+            <if test="observeName=='nullValue'">
+                t.OBSERVE_NAME=null,
+            </if>
+            <if test="observeCode=='nullValue'">
+                t.OBSERVE_CODE=null,
+            </if>
+            <if test="observeVal=='nullValue'">
+                t.OBSERVE_VAL=null,
+            </if>
+            <if test="observeUnit=='nullValue'">
+                t.OBSERVE_UNIT=null,
+            </if>
+            <if test="remark=='nullValue'">
+                t.REMARK=null,
+            </if>
+            <if test="recordNurseName=='nullValue'">
+                t.RECORD_NURSE_NAME=null,
+            </if>
+            <if test="nurseRecordTime=='nullValue'">
+                t.NURSE_RECORD_TIME=null,
+            </if>
+            <if test="updateTime!=null">
+                t.UPDATE_TIME=to_date(#{updateTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            </if>
+        </set>
+        <where>
+            <if test="planTime!=null">
+                and t.plan_time=to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+            </if>
+            <if test="patientId!=null">
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and t.series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="deptCode!=null">
+                and t.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null">
+                and t.ward_code=#{wardCode,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </update>
+
+    <delete id="delete" parameterType="java.util.Map">
+        delete from MNIS_VITAL_SIGN
+        <where>
+            <if test="planTime!=null">
+                and t.plan_time=to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+            </if>
+            <if test="patientId!=null">
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and t.series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="deptCode!=null">
+                and t.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null">
+                and t.ward_code=#{wardCode,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </delete>
+
+    <select id="queryCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(t.col_id)
+        from MNIS_VITAL_SIGN t
+        <where>
+            <if test="planTime!=null">
+                and t.plan_time=to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+            </if>
+            <if test="patientId!=null">
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and t.series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="deptCode!=null">
+                and t.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null">
+                and t.ward_code=#{wardCode,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryReal" parameterType="java.lang.String" resultMap="signMapper">
+        select t.BREATHE_FREQUENCY,
+        t.PULSE,
+        t.PACER_HEART_RATE,
+        t.TEMPERATURE,
+        t.SYSTOLIC_PRESSURE,
+        t.DIASTOLIC_PRESSURE,
+        t.WEIGHT,
+        t.GIRTH_OF_PAUNCH,
+        t.OBSERVE_CODE,
+        t.OBSERVE_NAME,
+        t.OBSERVE_VAL,
+        t.OBSERVE_UNIT
+        from MNIS_VITAL_SIGN t
+        <where>
+            <if test="planTime!=null">
+                and t.plan_time=to_date(#{planTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+            </if>
+            <if test="patientId!=null">
+                and t.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="series!=null">
+                and t.series=#{series,jdbcType=VARCHAR}
+            </if>
+            <if test="deptCode!=null">
+                and t.dept_code=#{deptCode,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null">
+                and t.ward_code=#{wardCode,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
 </mapper>

@@ -12,22 +12,21 @@
  *
  */
 
-package com.heren.turtle.server.dao.turtleDao;
+package com.heren.turtle.server.dao.hisDao;
 
-import com.heren.turtle.server.dao.BaseDao;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 
 /**
- * Created by diaozhiwei on 16-2-26.
+ * Created by luoxiaoming on 16-2-26.
  */
+@Component("hisExamDao")
+public interface HisExamDao {
 
-@Component("turtleLisDao")
-public interface TurtleLisDao extends BaseDao {
-
-    Integer queryInt(Map<String, Object> params);
-
-    void addMnisLis(Map<String, Object> params);
+    List<Map<String, Object>> queryExam(@Param(value = "patientId") String patientId,
+                                        @Param(value = "visitId") String visitId);
 
 }

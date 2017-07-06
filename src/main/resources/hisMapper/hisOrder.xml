@@ -132,10 +132,10 @@
                 and im.ward_code=#{wardCode,jdbcType=VARCHAR}
             </if>
             <if test="startTime!=null">
-                and im.start_time>=to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and im.start_time>=to_date(#{startTime,jdbcType=VARCHAR}||'00:00:00','yyyy-MM-dd hh24:mi:ss')
             </if>
             <if test="endTime!=null">
-                <![CDATA[ and im.start_time<to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+                <![CDATA[ and im.start_time<=to_date(#{endTime,jdbcType=VARCHAR}||'23:59:59','yyyy-MM-dd hh24:mi:ss')]]>
             </if>
         </where>
     </select>
@@ -184,7 +184,9 @@
                 and im.long_once_flag=#{longOnceFlag,jdbcType=VARCHAR}
             </if>
             and im.ORDER_STATUS='2'
-            and (im.supply_name like '%输液%' or im.supply_name like '%注射%')
+            --and (im.supply_name like '%输液%' or im.supply_name like '%注射%')
+            AND im.supply_code in
+            ('P1','X5','BA','BB','BC','H2','H3','H4','I2','F7','J8','J9','L2','L3','L5','L6','L7','M4','M5','M6','M7','N1','O2','O5','A2','F4','A4','B1','B2','B3','B4','B5','F1','F2','F5','F6','K8','F3','A3','D4','O7','X3','X7','O8','F8')
         </where>
     </select>
 

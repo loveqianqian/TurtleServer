@@ -27,6 +27,7 @@ public interface BaseDao {
 
     /**
      * base query
+     *
      * @param params
      * @return
      */
@@ -34,18 +35,21 @@ public interface BaseDao {
 
     /**
      * base add
+     *
      * @param params
      */
     void add(Map<String, Object> params);
 
     /**
      * base delete
+     *
      * @param params
      */
     void delete(Map<String, Object> params);
 
     /**
      * base modify
+     *
      * @param params
      */
     void modify(Map<String, Object> params);

@@ -180,4 +180,40 @@
         </where>
     </select>
 
+    <insert id="addMnisLis" parameterType="java.util.Map">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="BEFORE">
+            select MNIS_LIS_AUTO_ID.NEXTVAL from dual
+        </selectKey>
+        INSERT INTO MNIS_LIS
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            PATIENT_ID,
+            VISIT_ID,
+            ADMISSION_ID,
+            DEPT_CODE,
+            WARD_CODE,
+            TEST_NO,
+            USER_ID,
+            UPDATE_TIME,
+            ACTION_TYPE,
+            RECORD_NURSE,
+            START_TIME,
+            END_TIME
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{patientId,jdbcType=VARCHAR},
+            #{series,jdbcType=VARCHAR},
+            #{admissionId,jdbcType=VARCHAR},
+            #{deptCode,jdbcType=VARCHAR},
+            #{wardCode,jdbcType=VARCHAR},
+            #{testNo,jdbcType=VARCHAR},
+            #{userId,jdbcType=VARCHAR},
+            sysdate,
+            #{actionType,jdbcType=VARCHAR},
+            #{recordNurse,jdbcType=VARCHAR},
+            to_date(#{startTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss')
+        </trim>
+    </insert>
+
 </mapper>

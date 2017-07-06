@@ -137,5 +137,58 @@ public interface MnisService {
      * @return String.valueOf(xml)
      */
     String getBloodRecInfo(String message);
+
+    /**
+     * 返回检验信息
+     * 根据test_no，修改LAB_TEST_MASTER
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    String receiveLisInfo(String message);
+
+
+    /**
+     * 获取检查报告
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    String getExamInfo(String message);
+
+    /**
+     * 获取检验报告
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    String getLisReportInfoSample(String message);
+
+    /**
+     * 获取检验报告(详细)
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    String getLisReportInfo(String message);
+
+
+    /**
+     * 获取在院婴儿信息
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    String getBabyInfoIn(String message);
+
+    /**
+     * 获取出院婴儿信息
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    String getBabyInfoOut(String message);
+
+
 }
 

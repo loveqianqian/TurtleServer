@@ -64,19 +64,19 @@
         to_char(pmi.date_of_birth, 'yyyy-MM-dd') as birthday,
         pmi.phone_number_home as phone,
         pv.OCCUPATION,
-        pmi.mailing_address as address,
+        (select d.area_name from area_dict d where d.area_code= pmi.birth_place) as address,
         to_char(pih.admission_date_time, 'yyyy-MM-dd hh24:mi:ss') as admission_time,
         to_char(pih.adm_ward_date_time, 'yyyy-MM-dd hh24:mi:ss') as admission_ward_time,
         to_char(pv.discharge_date_time, 'yyyy-MM-dd hh24:mi:ss') as discharge_time,
         pih.diagnosis,
         pih.nursing_class,
         pih.patient_condition,
-        pv.insurance_type as charge_type,
+        pv.charge_type as charge_type,
         pih.total_costs,
         pih.prepayments as pre_payment,
         pih.total_charges as self_payment,
         '0' as arrear_flag,
-        pv.attending_doctor as doctor_name,
+        pih.DOCTOR_IN_CHARGE as doctor_name,
         pv.isalergy as allergy
         from pats_in_hospital pih,
         pat_master_index pmi,
@@ -106,7 +106,8 @@
         pv.dept_discharge_from as dept_code,
         (select dd.dept_name from dept_dict dd where dd.dept_code=pv.dept_discharge_from) as dept_name,
         (select dvw.ward_code from dept_vs_ward dvw where pv.dept_discharge_from=dvw.dept_code) as ward_code,
-        (select dd.dept_name from dept_dict dd ,dept_vs_ward dvw where dvw.ward_code=dd.dept_code and pv.dept_discharge_from=dvw.dept_code ) as  ward_name,
+        (select dd.dept_name from dept_dict dd ,dept_vs_ward dvw where dvw.ward_code=dd.dept_code and
+        pv.dept_discharge_from=dvw.dept_code ) as ward_name,
         to_char(pmi.date_of_birth,'yyyy-MM-dd hh24:mi:ss') as birthday,
         pmi.phone_number_home as phone,
         pmi.mailing_address as address,
@@ -238,6 +239,73 @@
             <if test="endTime!=null">
                 and pv.discharge_date_time &lt;to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
+        </where>
+    </select>
+
+    <resultMap id="babyMap" type="java.util.Map">
+        <result column="patient_id" property="patientId"/>
+        <result column="inp_no" property="inpNo"/>
+        <result column="visit_id" property="visitId"/>
+        <result column="name" property="name"/>
+        <result column="sex" property="sex"/>
+        <result column="birth_date" property="birthday"/>
+        <result column="birth_high" property="height"/>
+        <result column="birth_weight" property="weight"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="ward_code" property="wardCode"/>
+        <result column="baby_no" property="babyNo"/>
+    </resultMap>
+
+    <select id="queryBabyInfoIn" parameterType="java.lang.String" resultMap="babyMap">
+        SELECT
+        spv.patient_id,
+        pi.inp_no,
+        spv.visit_id,
+        spv.name,
+        spv.sex,
+        spv.birth_date,
+        spv.birth_high,
+        spv.birth_weight,
+        pih.dept_code,
+        pih.ward_code,
+        spv.baby_no
+        FROM sub_pat_visit spv, pats_in_hospital pih,pat_master_index pi
+        <where>
+            <if test="patientId!=null and patientId!='null'">
+                AND pih.patient_id = #{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null and visitId!='null'">
+                AND pih.visit_id = #{visitId,jdbcType=VARCHAR}
+            </if>
+            <if test="wardCode!=null and wardCode!='null'">
+                AND pih.ward_code = #{wardCode,jdbcType=VARCHAR}
+            </if>
+            and spv.patient_id = pih.patient_id
+            AND spv.visit_id = pih.visit_id
+            and pih.patient_id=pi.patient_id
+        </where>
+    </select>
+
+    <select id="queryBabyInfoOut" parameterType="java.lang.String" resultMap="babyMap">
+        SELECT
+        spv.patient_id,
+        pi.inp_no,
+        spv.visit_id,
+        spv.name,
+        spv.sex,
+        spv.birth_date,
+        spv.birth_high,
+        spv.birth_weight,
+        spv.baby_no
+        FROM sub_pat_visit spv, pat_master_index pi
+        <where>
+            <if test="patientId!=null">
+                AND spv.patient_id = #{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                AND spv.visit_id = #{visitId,jdbcType=VARCHAR}
+            </if>
+            and spv.patient_id = pi.patient_id
         </where>
     </select>
 

@@ -117,24 +117,24 @@
 
     <select id="queryRec" resultMap="bloodRecMapper" parameterType="java.lang.String">
         SELECT
-            br.blood_out_num,
-            br.blood_out_id,
-            br.blood_product_id,
-            br.blood_group,
-            br.rh,
-            br.blood_type,
-            bc.blood_type_name,
-            br.blood_capacity,
-            br.blood_unit,
-            bm.match_result
+        br.blood_out_num,
+        br.blood_out_id,
+        br.blood_product_id,
+        br.blood_group,
+        br.rh,
+        br.blood_type,
+        bc.blood_type_name,
+        br.blood_capacity,
+        br.blood_unit,
+        bm.match_result
         FROM BLDBANK.blood_rec br, BLDBANK.blood_component bc, BLDBANK.blood_match bm
         <where>
             <if test="bloodOutNum!=null">
                 and br.blood_out_num=#{bloodOutNum,jdbcType=VARCHAR}
             </if>
             AND br.blood_type = bc.blood_type (+)
-            AND br.blood_id = bm.blood_id
-            AND br.apply_num = bm.apply_num
+            AND br.blood_id = bm.blood_id(+)
+            AND br.apply_num = bm.apply_num(+)
         </where>
     </select>
 

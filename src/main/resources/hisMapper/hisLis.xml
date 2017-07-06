@@ -25,7 +25,7 @@
         <result column="patient_id" property="patient_id"/>
         <result column="series" property="series"/>
         <result column="admission_id" property="admission_id"/>
-        <result column="specimen" property="specimen"/>
+        <result column="item_name" property="specimen"/>
         <result column="order_no" property="order_no"/>
         <result column="group_no" property="group_no"/>
         <result column="requested_date_time" property="requested_date_time"/>
@@ -38,13 +38,14 @@
         ltm.patient_id,
         ltm.visit_id as series,
         pmi.inp_no as admission_id,
-        ltm.specimen,
-        do.order_no || '_' || do.order_sub_no || '_' || do.patient_id || '_' || do.visit_id as order_no,
-        do.order_no as group_no,
+        lti.item_name,
+        do.related_order_no || '_' || do.related_order_sub_no || '_' || do.patient_id || '_' || do.visit_id as order_no,
+        do.related_order_no as group_no,
         to_char(ltm.requested_date_time, 'yyyy-MM-dd hh24:mi:ss') as requested_date_time,
         ltm.ordering_provider
         FROM
-        doctor_orders do, pat_master_index pmi, lab_test_master ltm, pats_in_hospital pih
+        doctor_orders do, pat_master_index pmi, LAB.lab_test_master ltm, pats_in_hospital pih,LAB.LAB_TEST_ITEMS
+        lti
         <where>
             <if test="testNo!=null">
                 and ltm.test_no=#{testNo,jdbcType=VARCHAR}
@@ -56,17 +57,19 @@
                 and ltm.visit_id=#{series,jdbcType=VARCHAR}
             </if>
             <if test="orderNo!=null">
-                and do.order_no=#{orderNo,jdbcType=VARCHAR}
+                and do.related_order_no=#{orderNo,jdbcType=VARCHAR}
             </if>
             <if test="orderSubNo!=null">
-                and do.order_sub_no=#{orderSubNo,jdbcType=VARCHAR}
+                and do.related_order_sub_no=#{orderSubNo,jdbcType=VARCHAR}
             </if>
+            and lti.item_code=do.order_code
             and do.patient_id = pmi.patient_id
             AND do.req_id = ltm.test_no
             AND do.patient_id = ltm.patient_id
             AND do.visit_id = ltm.visit_id
             AND do.patient_id = pih.patient_id
             AND do.visit_id = pih.visit_id
+            and lti.test_no=ltm.test_no
         </where>
     </select>
 
@@ -206,6 +209,89 @@
                 #{refRange,mode=IN,jdbcType=VARCHAR},
                 #{ret,mode=OUT,jdbcType=VARCHAR}
         )
+    </select>
+
+    <select id="queryFromMnis" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM lab.LAB_TEST_MASTER t
+        WHERE t.TEST_NO = #{testNo,jdbcType=VARCHAR}
+    </select>
+
+    <update id="modifyFromMnis" parameterType="java.lang.String">
+        update LAB.LAB_TEST_MASTER t
+        <set>
+            t.SPCM_SAMPLE_DATE_TIME=to_date(#{endTime,jdbcType=VARCHAR},'yyyy-MM-dd hh24:mi:ss'),
+            t.confrim_indicator='1',
+        </set>
+        <where>
+            <if test="testNo!=null">
+                and t.test_no=#{testNo,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </update>
+
+    <resultMap id="queryLabReportSampleMapper" type="java.util.Map">
+        <result column="INP_NO" property="admission_id"/>
+        <result column="PATIENT_ID" property="patient_id"/>
+        <result column="VISIT_ID" property="series"/>
+        <result column="TRANSCRIPTIONIST" property="reporter_name"/>
+        <result column="TEST_NO" property="test_no"/>
+        <result column="RESULTS_RPT_DATE_TIME" property="report_date"/>
+        <result column="ITEM_NAME" property="report_name"/>
+    </resultMap>
+
+    <select id="queryLabReportSample" parameterType="java.lang.String" resultMap="queryLabReportSampleMapper">
+        select
+        pmi.INP_NO,
+        lm.PATIENT_ID,
+        lm.VISIT_ID,
+        lm.TRANSCRIPTIONIST,
+        lm.TEST_NO,
+        to_char(lm.RESULTS_RPT_DATE_TIME, 'yyyy-MM-dd hh24:mi:ss') as RESULTS_RPT_DATE_TIME,
+        li.ITEM_NAME
+        from LAB.LAB_TEST_MASTER lm,MEDREC.PAT_MASTER_INDEX pmi,LAB.LAB_TEST_ITEMS li
+        <where>
+            <if test="patientId!=null">
+                and lm.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                and lm.VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            and lm.PATIENT_ID=pmi.PATIENT_ID
+            and lm.RESULT_STATUS='4'
+            and lm.test_no=li.test_no
+        </where>
+    </select>
+
+    <resultMap id="queryLabReportMapper" type="java.util.Map">
+        <result column="TEST_NO" property="test_no"/>
+        <result column="REPORT_ITEM_CODE" property="item_id"/>
+        <result column="REPORT_ITEM_NAME" property="item_name"/>
+        <result column="RESULT" property="report_details"/>
+        <result column="ABNORMAL_INDICATOR" property="report_abnormal_sign"/>
+        <result column="LOWER_LIMIT" property="low_max_value"/>
+        <result column="UPPER_LIMIT" property="high_max_value"/>
+        <result column="REF_RANGE" property="remark"/>
+    </resultMap>
+
+    <select id="queryLabReport" parameterType="java.lang.String" resultMap="queryLabReportMapper">
+        select
+        lm.TEST_NO,
+        lr.REPORT_ITEM_CODE,
+        lr.REPORT_ITEM_NAME,
+        lr.RESULT,
+        lr.ABNORMAL_INDICATOR,
+        lr.LOWER_LIMIT,
+        lr.UPPER_LIMIT,
+        lr.REF_RANGE
+        from LAB.LAB_RESULT lr,LAB.LAB_TEST_MASTER lm
+        <where>
+            <if test="testNo!=null">
+                and lm.test_no=#{testNo,jdbcType=VARCHAR}
+            </if>
+            and lm.TEST_NO=lr.TEST_NO
+            and lm.RESULT_STATUS='4'
+        </where>
     </select>
 
 </mapper>

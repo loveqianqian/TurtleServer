@@ -143,6 +143,35 @@ public class XmlUtils {
     }
 
     /**
+     * back correct information
+     *
+     * @param flag 0 no data 1 some exception
+     * @return
+     */
+    public static String correctMessage(int flag) {
+        Document document = DocumentHelper.createDocument();
+        Element payload = DocumentHelper.createElement("payload");
+        document.setRootElement(payload);
+        Element response = payload.addElement("response");
+        Element result = response.addElement("result");
+        result.setText("true");
+        Element resultText = response.addElement("resultText");
+        switch (flag) {
+            case 0:
+                resultText.setText("no data found!");
+                break;
+            case -1:
+                resultText.setText("success!");
+                break;
+            default:
+                break;
+        }
+        Element userId = response.addElement("userId");
+        userId.setText("0001");
+        return document.asXML();
+    }
+
+    /**
      * back successful information
      *
      * @return
@@ -189,6 +218,55 @@ public class XmlUtils {
             }
         }
         return result;
+    }
+
+    public static Map<String, Object> getMessageReceiveSample(String message) throws DocumentException {
+        message = replaceWrongPart(message);
+        Document document = DocumentHelper.parseText(message);
+        Element rootElement = document.getRootElement();
+        Element request = rootElement.element("request");
+        List elements = request.elements();
+        Map<String, Object> result = new HashMap<>();
+        for (Object element : elements) {
+            Element subElement = (Element) element;
+            String name = subElement.getName();
+            if (name.equalsIgnoreCase("item")) {
+                List subElements = subElement.elements();
+                for (Object subEle : subElements) {
+                    Element grantSubElement = (Element) subEle;
+                    result.put(grantSubElement.getName(), grantSubElement.getTextTrim());
+                }
+            } else if (subElement.isTextOnly()) {
+                result.put(name, subElement.getTextTrim());
+            }
+        }
+        return result;
+    }
+
+    public static List<Map<String, Object>> getMessageReceiveSampleContainItems(String message) throws DocumentException {
+        message = replaceWrongPart(message);
+        Document document = DocumentHelper.parseText(message);
+        Element rootElement = document.getRootElement();
+        Element request = rootElement.element("request");
+        Element items = request.element("items");
+        List elements = items.elements();
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (Object element : elements) {
+            Map<String, Object> result = new HashMap<>();
+            Element subElement = (Element) element;
+            String name = subElement.getName();
+            if (name.equalsIgnoreCase("item")) {
+                List subElements = subElement.elements();
+                for (Object subEle : subElements) {
+                    Element grantSubElement = (Element) subEle;
+                    result.put(grantSubElement.getName(), grantSubElement.getTextTrim());
+                }
+            } else if (subElement.isTextOnly()) {
+                result.put(name, subElement.getTextTrim());
+            }
+            resultList.add(result);
+        }
+        return resultList;
     }
 
     /**

@@ -15,16 +15,17 @@
 package com.heren.turtle.server.agent.impl;
 
 import com.heren.turtle.server.agent.IMnisAgent;
+import com.heren.turtle.server.constant.ActionType;
 import com.heren.turtle.server.dao.hisDao.*;
+import com.heren.turtle.server.dao.turtleDao.TurtleLisDao;
 import com.heren.turtle.server.dao.turtleDao.TurtleOrdersDao;
 import com.heren.turtle.server.dao.turtleDao.TurtlePioDao;
 import com.heren.turtle.server.dao.turtleDao.TurtleSignDao;
-import com.heren.turtle.server.utils.BooleanUtils;
-import com.heren.turtle.server.utils.ConversionUtils;
-import com.heren.turtle.server.utils.TimeUtils;
-import com.heren.turtle.server.utils.TransUtils;
+import com.heren.turtle.server.exception.LackElementException;
+import com.heren.turtle.server.utils.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -43,7 +44,7 @@ import java.util.Map;
  */
 @SuppressWarnings("JavaDoc")
 @Component("mnisAgent")
-@Transactional(readOnly = false, isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRED)
+@Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRED)
 public class MnisAgent implements IMnisAgent {
 
     @Autowired
@@ -78,6 +79,12 @@ public class MnisAgent implements IMnisAgent {
 
     @Autowired
     private HisBloodDao hisBloodDao;
+
+    @Autowired
+    private TurtleLisDao turtleLisDao;
+
+    @Autowired
+    private HisExamDao hisExamDao;
 
     private Logger logger = Logger.getLogger(this.getClass());
 
@@ -253,7 +260,8 @@ public class MnisAgent implements IMnisAgent {
         for (Map<String, Object> resultMap : transferList) {
             resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
-            resultMap.put("turn_out_bed_no", "nullValue");
+            resultMap.put("turn_in_bed_no", "nullValue");
+            resultMap.put("turn_in_time", "nullValue");
             resultMap.put("actionType", "nullValue");
             resultList.add(resultMap);
         }
@@ -414,27 +422,229 @@ public class MnisAgent implements IMnisAgent {
     /**
      * 通过参数回写体征信息
      *
-     * @param params
+     * @param paramsList
      * @return
      */
     @Override
-    public boolean writeBackSign(Map<String, Object> params) {
-        params.keySet().forEach(key -> logger.info("mnis writebackSign params:" + key + ":" + params.get(key)));
-        try {
-            if (BooleanUtils.putMapBoolean(params, "actionType")) {
-                String actionType = String.valueOf(params.get("actionType"));
-                params.put("actionType", actionType);
-                logger.info("actionType:" + actionType);
-                turtleSignDao.add(params);
-                return true;
+    public int writeBackSign(List<Map<String, Object>> paramsList) {
+        for (Map<String, Object> queryParams : paramsList) {
+            Map<String, Object> params;
+            boolean patientIdExist = BooleanUtils.putMapBoolean(queryParams, "patient_id");
+            boolean seriesExist = BooleanUtils.putMapBoolean(queryParams, "series");
+            boolean deptCodeExist = BooleanUtils.putMapBoolean(queryParams, "dept_code");
+            boolean wardCodeExist = BooleanUtils.putMapBoolean(queryParams, "ward_code");
+            boolean updateTimeExist = BooleanUtils.putMapBoolean(queryParams, "update_time");
+            boolean actionTypeExist = BooleanUtils.putMapBoolean(queryParams, "action_type");
+            if (patientIdExist && seriesExist && deptCodeExist && wardCodeExist && updateTimeExist && actionTypeExist) {
+                params = BooleanUtils.putMapBooleanList(queryParams,
+                        "patient_id",
+                        "series",
+                        "admission_id",
+                        "dept_code",
+                        "ward_code",
+                        "bed_no",
+                        "patient_name",
+                        "sex_code",
+                        "age_year",
+                        "age_month",
+                        "disease_diagnose_name",
+                        "in_hos_time",
+                        "real_in_hos_time",
+                        "after_operation_time",
+                        "plan_time",
+                        "record_time",
+                        "sign_name",
+                        "sign_code",
+                        "sign_val",
+                        "sign_unit",
+                        "is_ventilator",
+                        "observe_name",
+                        "observe_code",
+                        "observe_val",
+                        "observe_unit",
+                        "remark",
+                        "record_nurse_name",
+                        "record_nurse_time",
+                        "update_time",
+                        "action_type");
             } else {
-                return false;
+                throw new LackElementException("can't be without some key parameters");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error(e.getMessage(), e);
-            return false;
+            params.keySet().forEach(key -> logger.info("mnis writebackSign params:" + key + ":" + params.get(key)));
+            String actionType = String.valueOf(params.get("actionType"));
+            String planTime = String.valueOf(params.get("planTime"));
+            String patientId = String.valueOf(params.get("patientId"));
+            String series = String.valueOf(params.get("series"));
+            String deptCode = String.valueOf(params.get("deptCode"));
+            String wardCode = String.valueOf(params.get("wardCode"));
+            boolean observeCodeExist = params.containsKey("observeCode");
+            Integer count = turtleSignDao.queryCount(planTime, patientId, series, deptCode, wardCode);
+            logger.info("mnis writebackSign find count:" + count);
+            Map<String, Object> orgMap = turtleSignDao.queryReal(planTime, patientId, series, deptCode, wardCode);
+            boolean orgObserveCodeExist = orgMap != null && orgMap.containsKey("observeCode") && orgMap.get("observeCode") != null;
+            if (count > 0 && orgObserveCodeExist && observeCodeExist) {
+                String[] observeCodes = String.valueOf(orgMap.get("observeCode")).split("\\^");
+                String[] observeVals = String.valueOf(orgMap.get("observeVal")).split("\\^");
+                String[] observeUnits = String.valueOf(orgMap.get("observeUnit")).split("\\^");
+                int observeCount = -1;
+                for (int j = 0; j < observeCodes.length; j++) {
+                    if (observeCodes[j].equalsIgnoreCase(String.valueOf(params.get("observeCode")))) {
+                        observeCount = j;
+                    }
+                }
+                if (ActionType.discard.name().equalsIgnoreCase(actionType)) {
+                    String observeCode = SplitUtils.removeSomeOne(String.valueOf(orgMap.get("observeCode")), observeCount);
+                    String observeVal = SplitUtils.removeSomeOne(String.valueOf(orgMap.get("observeVal")), observeCount);
+                    String observeName = SplitUtils.removeSomeOne(String.valueOf(orgMap.get("observeName")), observeCount);
+                    String observeUnit = SplitUtils.removeSomeOne(String.valueOf(orgMap.get("observeUnit")), observeCount);
+                    params.put("observeVal", observeVal);
+                    params.put("observeCode", observeCode);
+                    params.put("observeName", observeName);
+                    params.put("observeUnit", observeUnit);
+                } else {
+                    if (observeCount >= 0) {
+                        String observeVal = SplitUtils.replaceWord(observeVals, params.get("observeVal"), observeCount);
+                        String observeUnit = SplitUtils.replaceWord(observeUnits, params.get("observeUnit"), observeCount);
+                        params.remove("observeCode");
+                        params.remove("observeName");
+                        params.put("observeVal", observeVal);
+                        params.put("observeUnit", observeUnit);
+                    } else {
+                        params.put("observeVal", String.valueOf(orgMap.get("observeVal")) + "^" + String.valueOf(params.get("observeVal")));
+                        params.put("observeCode", String.valueOf(orgMap.get("observeCode")) + "^" + String.valueOf(params.get("observeCode")));
+                        params.put("observeName", String.valueOf(orgMap.get("observeName")) + "^" + String.valueOf(params.get("observeName")));
+                        params.put("observeUnit", String.valueOf(orgMap.get("observeUnit")) + "^" + String.valueOf(params.get("observeUnit")));
+                    }
+                }
+                String signCode = String.valueOf(params.get("signCode"));
+                String signVal = String.valueOf(params.get("signVal"));
+                switch (signCode) {
+                    case "1001":
+                        params.put("temperature", signVal);
+                        break;
+                    case "1004":
+                        params.put("breatheFrequency", signVal);
+                        break;
+                    case "1002":
+                        params.put("pulse", signVal);
+                        break;
+                    case "1027":
+                        params.put("systolicPressure", signVal);
+                        break;
+                    case "1028":
+                        params.put("diastolicPressure", signVal);
+                        break;
+                    case "1032":
+                        params.put("weight", signVal);
+                        break;
+                    case "1003":
+                        params.put("pacerHeartRate", signVal);
+                        break;
+                    default:
+                        break;
+                }
+                turtleSignDao.modify(params);
+            } else if (count == 0 && actionType.equalsIgnoreCase(ActionType.add.name())) {
+                turtleSignDao.addCommon(params);
+                String signCode = String.valueOf(params.get("signCode"));
+                String signVal = String.valueOf(params.get("signVal"));
+                switch (signCode) {
+                    case "1001":
+                        params.put("temperature", signVal);
+                        break;
+                    case "1004":
+                        params.put("breatheFrequency", signVal);
+                        break;
+                    case "1002":
+                        params.put("pulse", signVal);
+                        break;
+                    case "1027":
+                        params.put("systolicPressure", signVal);
+                        break;
+                    case "1028":
+                        params.put("diastolicPressure", signVal);
+                        break;
+                    case "1032":
+                        params.put("weight", signVal);
+                        break;
+                    case "1003":
+                        params.put("pacerHeartRate", signVal);
+                        break;
+                    default:
+                        break;
+                }
+                turtleSignDao.modify(params);
+            } else if (count > 0 && (actionType.equalsIgnoreCase(ActionType.add.name()) || actionType.equalsIgnoreCase(ActionType.modify.name()))) {
+                String signCode = String.valueOf(params.get("signCode"));
+                String signVal = String.valueOf(params.get("signVal"));
+                switch (signCode) {
+                    case "1001":
+                        params.put("temperature", signVal);
+                        break;
+                    case "1004":
+                        params.put("breatheFrequency", signVal);
+                        break;
+                    case "1002":
+                        params.put("pulse", signVal);
+                        break;
+                    case "1027":
+                        params.put("systolicPressure", signVal);
+                        break;
+                    case "1028":
+                        params.put("diastolicPressure", signVal);
+                        break;
+                    case "1032":
+                        params.put("weight", signVal);
+                        break;
+                    case "1003":
+                        params.put("pacerHeartRate", signVal);
+                        break;
+                    default:
+                        break;
+                }
+                turtleSignDao.modify(params);
+            } else if (count > 0 && actionType.equalsIgnoreCase(ActionType.discard.name())) {
+                boolean flag = false;
+                for (Object value : orgMap.values()) {
+                    if (value != null && !String.valueOf(value).equals("")) {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (!flag) {
+                    turtleSignDao.delete(params);
+                } else {
+                    String signCode = String.valueOf(params.get("signCode"));
+                    switch (signCode) {
+                        case "1001":
+                            params.put("temperature", "nullValue");
+                            break;
+                        case "1004":
+                            params.put("breatheFrequency", "nullValue");
+                            break;
+                        case "1002":
+                            params.put("pulse", "nullValue");
+                            break;
+                        case "1027":
+                            params.put("systolicPressure", "nullValue");
+                            break;
+                        case "1028":
+                            params.put("diastolicPressure", "nullValue");
+                            break;
+                        case "1032":
+                            params.put("weight", "nullValue");
+                            break;
+                        case "1003":
+                            params.put("pacerHeartRate", "nullValue");
+                            break;
+                        default:
+                            break;
+                    }
+                    turtleSignDao.modify(params);//delete column
+                }
+            }
         }
+        return -1;
     }
 
     @Override
@@ -498,6 +708,141 @@ public class MnisAgent implements IMnisAgent {
         params.keySet().forEach(key -> logger.info("mnis getBloodRecInfo params:" + key + ":" + params.get(key)));
         List<Map<String, Object>> bloodList = hisBloodDao.queryRec(String.valueOf(params.get("bloodOutNum")));
         for (Map<String, Object> resultMap : bloodList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    /**
+     * 返回检验信息
+     * 根据test_no，修改LAB_TEST_MASTER
+     *
+     * @param params patient_id
+     *               series
+     *               admission_id
+     *               dept_code
+     *               ward_code
+     *               test_no
+     *               record_nurse
+     *               start_time
+     *               end_time
+     *               user_id
+     *               update_time
+     *               action_type
+     * @return 0:no data 1:some exception
+     */
+    @Override
+    public int receiveLisInfo(Map<String, Object> params) {
+        String testNo = String.valueOf(params.get("testNo"));
+        String endTime = String.valueOf(params.get("endTime"));
+        Integer testCount = hisLisDao.queryFromMnis(testNo);
+        logger.info("receiveLisInfo find count :" + testCount);
+        if (testCount > 0) {
+            String endTimeChange = transUtils.U2I(endTime);
+            String testNoChange = transUtils.U2I(testNo);
+            hisLisDao.modifyFromMnis(endTimeChange, testNoChange);
+            turtleLisDao.addMnisLis(params);
+            return -1;
+        }
+        return 0;
+    }
+
+    /**
+     * 获取检查报告
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getExamInfo(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getExamInfo params:" + key + ":" + params.get(key)));
+        String patientId = String.valueOf(params.get("patientId"));
+        String series = String.valueOf(params.get("series"));
+        List<Map<String, Object>> examList = hisExamDao.queryExam(patientId, series);
+        for (Map<String, Object> resultMap : examList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    /**
+     * 获取检验报告
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getLisReportInfoSample(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getLisReportInfoSample params:" + key + ":" + params.get(key)));
+        String patientId = String.valueOf(params.get("patientId"));
+        String series = String.valueOf(params.get("series"));
+        List<Map<String, Object>> labList = hisLisDao.queryLabReportSample(patientId, series);
+        for (Map<String, Object> resultMap : labList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    /**
+     * 获取检验详细报告
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getLisReportInfo(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getLisReportInfo params:" + key + ":" + params.get(key)));
+        String testNo = String.valueOf(params.get("testNo"));
+        List<Map<String, Object>> labList = hisLisDao.queryLabReport(testNo);
+        for (Map<String, Object> resultMap : labList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    @Override
+    public List<Map<String, Object>> getBabyInfoIn(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getBabyInfo params:" + key + ":" + params.get(key)));
+        String wardCode = String.valueOf(params.get("wardCode"));
+        String patientId = String.valueOf(params.get("patientId"));
+        String visitId = String.valueOf(params.get("visitId"));
+        List<Map<String, Object>> babyList = hisPatientDao.queryBabyInfoIn(patientId, visitId, wardCode);
+        for (Map<String, Object> resultMap : babyList) {
+            resultMap.keySet().forEach(key ->
+                    resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
+            resultMap.put("actionType", "nullValue");
+            resultList.add(resultMap);
+        }
+        return resultList;
+    }
+
+    @Override
+    public List<Map<String, Object>> getBabyInfoOut(Map<String, Object> params) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        params.keySet().forEach(key -> logger.info("mnis getBabyInfo params:" + key + ":" + params.get(key)));
+        String patientId = String.valueOf(params.get("patientId"));
+        String visitId = String.valueOf(params.get("visitId"));
+        List<Map<String, Object>> babyList = hisPatientDao.queryBabyInfoOut(patientId,visitId);
+        for (Map<String, Object> resultMap : babyList) {
             resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("actionType", "nullValue");

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ /*
+  ~  *****************************************************************************
+  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
+  ~  *
+  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
+  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
+  ~  *  and shall use it only in accordance with the terms of the license agreement
+  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
+  ~  *  reseller (the "License Agreement").
+  ~  ****************************************************************************
+  ~  */
+  -->
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.heren.turtle.server.dao.hisDao.HisExamDao">
+
+    <resultMap id="examMapper" type="java.util.Map">
+        <result column="PATIENT_ID" property="patient_id"/>
+        <result column="VISIT_ID" property="series"/>
+        <result column="INP_NO" property="admission_id"/>
+        <result column="EXAM_ITEM" property="report_name"/>
+        <result column="IS_ABNORMAL" property="pacs_test_results"/>
+        <result column="RECOMMENDATION" property="pacs_doctor_results"/>
+        <result column="REPORT_DATE_TIME" property="pacs_report_time"/>
+        <result column="REPORTER" property="pacs_report_doctor"/>
+        <result column="exam_no" property="exam_no"/>
+        <result column="REQ_DATE_TIME" property="request_time"/>
+        <result column="REQ_PHYSICIAN" property="requester_name"/>
+        <result column="DESCRIPTION" property="detail"/>
+    </resultMap>
+
+    <select id="queryExam" parameterType="java.lang.String" resultMap="examMapper">
+        SELECT
+        pmi.INP_NO,
+        em.PATIENT_ID,
+        em.VISIT_ID,
+        ei.EXAM_ITEM,
+        em.REQ_PHYSICIAN,
+        em.REQ_DATE_TIME,
+        em.exam_no,
+        em.REPORT_DATE_TIME,
+        em.REPORTER,
+        er.IS_ABNORMAL,
+        er.RECOMMENDATION,
+        er.DESCRIPTION
+        FROM MEDREC.pat_master_index pmi, EXAM.EXAM_MASTER em, EXAM.EXAM_ITEMS ei, EXAM.EXAM_REPORT er
+        <where>
+            <if test="patientId!=null">
+                and em.patient_id=#{patientId,jdbcType=VARCHAR}
+            </if>
+            <if test="visitId!=null">
+                and em.VISIT_ID=#{visitId,jdbcType=VARCHAR}
+            </if>
+            and pmi.PATIENT_ID = em.PATIENT_ID
+            AND em.EXAM_NO = ei.EXAM_NO
+            AND em.RESULT_STATUS = '4'
+            AND er.EXAM_NO = em.EXAM_NO
+        </where>
+    </select>
+
+</mapper>

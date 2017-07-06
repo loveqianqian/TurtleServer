@@ -15,6 +15,7 @@
 package com.heren.turtle.server.core;
 
 import org.apache.ws.security.WSPasswordCallback;
+import org.springframework.stereotype.Component;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -32,7 +33,6 @@ public class ClientCallBackHandler implements CallbackHandler {
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
-        pc.setPassword("300123");
-        System.out.println("success");
+        pc.setPassword("mnis1020");
     }
 }

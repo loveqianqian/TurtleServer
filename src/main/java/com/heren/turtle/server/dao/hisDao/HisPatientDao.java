@@ -59,4 +59,20 @@ public interface HisPatientDao extends BaseDao {
      * @return
      */
     List<Map<String, Object>> queryNIPatientOut(Map<String, Object> params);
+
+    /**
+     * @param patientId
+     * @param visitId
+     */
+    List<Map<String, Object>> queryBabyInfoOut(@Param(value = "patientId") String patientId,
+                                               @Param(value = "visitId") String visitId);
+
+    /**
+     * @param patientId
+     * @param visitId
+     * @param wardCode
+     */
+    List<Map<String, Object>> queryBabyInfoIn(@Param(value = "patientId") String patientId,
+                                              @Param(value = "visitId") String visitId,
+                                              @Param(value = "wardCode") String wardCode);
 }

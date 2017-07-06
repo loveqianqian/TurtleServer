@@ -19,10 +19,12 @@ import com.heren.turtle.server.constant.MessageConstant;
 import com.heren.turtle.server.constant.ProtocolType;
 import com.heren.turtle.server.exception.LackElementException;
 import com.heren.turtle.server.exception.TooMuchElementException;
+import com.heren.turtle.server.exception.commaException;
 import com.heren.turtle.server.service.MnisService;
 import com.heren.turtle.server.service.Summoner;
 import com.heren.turtle.server.utils.BooleanUtils;
 import com.heren.turtle.server.utils.XmlUtils;
+import com.sun.mail.iap.CommandFailedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -296,11 +298,13 @@ public class MnisWebService extends Summoner implements MnisService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = XmlUtils.getMessage(message);
                 Map<String, Object> queryMap;
-                if (BooleanUtils.putMapBoolean(params, "ward_code")) {
+                if (BooleanUtils.putMapBoolean(params, "ward_code")
+                        && BooleanUtils.putMapBoolean(params, "supply_type")) {
                     queryMap = BooleanUtils.putMapBooleanList(params,
                             "patient_id",
                             "series",
                             "long_once_flag",
+                            "supply_type",
                             "ward_code");
                 } else {
                     throw new LackElementException("can't be without the key of the parameters : ward_code");
@@ -308,7 +312,7 @@ public class MnisWebService extends Summoner implements MnisService {
                 List<Map<String, Object>> resultList = mnisAgent.getOrderDrug(queryMap);
                 String result = listCreateXml(resultList, "item");
                 this.logger.info("successful operation");
-                this.logger.info("getOrder result:" + result);
+                this.logger.info("getDrugOrder result:" + result);
                 return result;
             } else {
                 this.logger.info(MessageConstant.formatFailed);
@@ -424,32 +428,11 @@ public class MnisWebService extends Summoner implements MnisService {
         this.logger.info("writeBackSign receive mnis request message:\n" + message);
         try {
             if (XmlUtils.isXml(message)) {
-                Map<String, Object> params = XmlUtils.getMessage(message);
-                Map<String, Object> queryParams = BooleanUtils.putMapBooleanList(params,
-                        "patient_id",
-                        "series",
-                        "dept_code",
-                        "plan_time",
-                        "record_time",
-                        "vitalsign_sval1",
-                        "unit",
-                        "update_time",
-                        "remark",
-                        "action_type");
-                queryParams.put("vitalSignDetails", message);
-                queryParams.put("vitalSignDetailsType", ProtocolType.xml.name());
-                if (mnisAgent.writeBackSign(queryParams)) {
-                    Map<String, Object> resultMap = new HashMap<>();
-                    resultMap.put("result", true);
-                    resultMap.put("resultText", "操作成功");
-                    String resultStr = createXml(resultMap);
-                    this.logger.info("successful operation");
-                    this.logger.info("writeBackSign result:" + resultStr);
-                    return resultStr;
-                } else {
-                    this.logger.info(MessageConstant.sql_save_failed);
-                    return XmlUtils.errorMessage(MessageConstant.save_failed);
-                }
+                List<Map<String, Object>> params = XmlUtils.getMessageReceiveSampleContainItems(message);
+                int flag = mnisAgent.writeBackSign(params);
+                String result = XmlUtils.correctMessage(flag);
+                this.logger.info("writeBackSign result:" + result);
+                return result;
             } else {
                 this.logger.info(MessageConstant.formatFailed);
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
@@ -503,7 +486,7 @@ public class MnisWebService extends Summoner implements MnisService {
 
     @Override
     public String getBloodInfo(String message) {
-        this.logger.info("getLisInfo receive mnis request message:\n" + message);
+        this.logger.info("getBloodInfo receive mnis request message:\n" + message);
         try {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = XmlUtils.getMessage(message);
@@ -564,4 +547,234 @@ public class MnisWebService extends Summoner implements MnisService {
         }
     }
 
+    /**
+     * 返回检验信息
+     * 根据test_no，修改LAB_TEST_MASTER
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    @Override
+    public String receiveLisInfo(String message) {
+        this.logger.info("receiveLisInfo receive mnis receive message:\n" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessageReceiveSample(message);
+                Map<String, Object> queryMap;
+                boolean testNoExist = BooleanUtils.putMapBoolean(params, "test_no");
+                boolean endTimeExist = BooleanUtils.putMapBoolean(params, "end_time");
+                if (testNoExist && endTimeExist) {
+                    queryMap = BooleanUtils.putMapBooleanList(params,
+                            "patient_id",
+                            "series",
+                            "admission_id",
+                            "dept_code",
+                            "ward_code",
+                            "test_no",
+                            "record_nurse",
+                            "start_time",
+                            "end_time",
+                            "update_time",
+                            "action_type",
+                            "user_id");
+                } else {
+                    throw new LackElementException("can't be without some key parameters");
+                }
+                int flag = mnisAgent.receiveLisInfo(queryMap);
+                String result = XmlUtils.correctMessage(flag);
+                this.logger.info("receiveLisInfo result:" + result);
+                return result;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            this.logger.info("exception:" + errorMsg);
+            e.printStackTrace();
+            return XmlUtils.errorMessage(errorMsg);
+        }
+    }
+
+    /**
+     * 获取检查报告
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    @Override
+    public String getExamInfo(String message) {
+        this.logger.info("getExamInfo receive mnis request message:\n" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessage(message);
+                Map<String, Object> queryMap;
+                boolean patientIdExist = BooleanUtils.putMapBoolean(params, "patient_id");
+                boolean seriesExist = BooleanUtils.putMapBoolean(params, "series");
+                if (patientIdExist && seriesExist) {
+                    queryMap = BooleanUtils.putMapBooleanList(params,
+                            "patient_id",
+                            "series");
+                } else {
+                    throw new LackElementException("can't be without some key parameters");
+                }
+                List<Map<String, Object>> resultList = mnisAgent.getExamInfo(queryMap);
+                String result = XmlUtils.createResultMessage(resultList);
+                this.logger.info("successful operation");
+                this.logger.info("getExamInfo result:" + result);
+                return result;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            this.logger.info("exception:" + errorMsg);
+            e.printStackTrace();
+            return XmlUtils.errorMessage(errorMsg);
+        }
+    }
+
+    /**
+     * 获取检验报告
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    @Override
+    public String getLisReportInfoSample(String message) {
+        this.logger.info("getLisReportInfoSample receive mnis request message:\n" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessage(message);
+                Map<String, Object> queryMap;
+                boolean patientIdExist = BooleanUtils.putMapBoolean(params, "patient_id");
+                boolean seriesExist = BooleanUtils.putMapBoolean(params, "series");
+                if (patientIdExist && seriesExist) {
+                    queryMap = BooleanUtils.putMapBooleanList(params,
+                            "patient_id",
+                            "series");
+                } else {
+                    throw new LackElementException("can't be without some key parameters");
+                }
+                List<Map<String, Object>> resultList = mnisAgent.getLisReportInfoSample(queryMap);
+                String result = XmlUtils.createResultMessage(resultList);
+                this.logger.info("successful operation");
+                this.logger.info("getLisReportInfoSample result:" + result);
+                return result;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            this.logger.info("exception:" + errorMsg);
+            e.printStackTrace();
+            return XmlUtils.errorMessage(errorMsg);
+        }
+    }
+
+    /**
+     * 获取检验报告(详细)
+     *
+     * @param message String.valueOf(xml)
+     * @return String.valueOf(xml)
+     */
+    @Override
+    public String getLisReportInfo(String message) {
+        this.logger.info("getLisReportInfo receive mnis request message:\n" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessage(message);
+                Map<String, Object> queryMap;
+                boolean testNoExist = BooleanUtils.putMapBoolean(params, "test_no");
+                if (testNoExist) {
+                    queryMap = BooleanUtils.putMapBooleanList(params, "test_no");
+                } else {
+                    throw new LackElementException("can't be without some key parameters");
+                }
+                List<Map<String, Object>> resultList = mnisAgent.getLisReportInfo(queryMap);
+                String result = XmlUtils.createResultMessage(resultList);
+                this.logger.info("successful operation");
+                this.logger.info("getLisReportInfo result:" + result);
+                return result;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            this.logger.info("exception:" + errorMsg);
+            e.printStackTrace();
+            return XmlUtils.errorMessage(errorMsg);
+        }
+    }
+
+    @Override
+    public String getBabyInfoIn(String message) {
+        this.logger.info("getBabyInfo receive mnis request message:" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessage(message);
+                Map<String, Object> queryMap;
+                boolean wardCodeExist = BooleanUtils.putMapBoolean(params, "ward_code");
+                boolean patientIdExist = BooleanUtils.putMapBoolean(params, "patient_id");
+                boolean visitIdExist = BooleanUtils.putMapBoolean(params, "visit_id");
+                if (wardCodeExist || (patientIdExist && visitIdExist)) {
+                    queryMap = BooleanUtils.putMapBooleanList(params,
+                            "ward_code",
+                            "patient_id",
+                            "visit_id");
+                } else {
+                    throw new LackElementException("can't be without some key parameters");
+                }
+                List<Map<String, Object>> resultList = mnisAgent.getBabyInfoIn(queryMap);
+                String result = XmlUtils.createResultMessage(resultList);
+                this.logger.info("successful operation");
+                this.logger.info("getBabyInfo result:" + result);
+                return result;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            this.logger.info("exception:" + errorMsg);
+            e.printStackTrace();
+            return XmlUtils.errorMessage(errorMsg);
+        }
+    }
+
+    @Override
+    public String getBabyInfoOut(String message) {
+        this.logger.info("getBabyInfoOut receive mnis request message:" + message);
+        try {
+            if (XmlUtils.isXml(message)) {
+                Map<String, Object> params = XmlUtils.getMessage(message);
+                Map<String, Object> queryMap;
+                boolean patientIdExist = BooleanUtils.putMapBoolean(params, "patient_id");
+                boolean visitIdExist = BooleanUtils.putMapBoolean(params, "visit_id");
+                if (patientIdExist && visitIdExist) {
+                    queryMap = BooleanUtils.putMapBooleanList(params,
+                            "patient_id",
+                            "visit_id");
+                } else {
+                    throw new LackElementException("can't be without some key parameters");
+                }
+                List<Map<String, Object>> resultList = mnisAgent.getBabyInfoOut(queryMap);
+                String result = XmlUtils.createResultMessage(resultList);
+                this.logger.info("successful operation");
+                this.logger.info("getBabyInfoOut result:" + result);
+                return result;
+            } else {
+                this.logger.info(MessageConstant.formatFailed);
+                return XmlUtils.errorMessage(MessageConstant.formatFailed);
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            this.logger.info("exception:" + errorMsg);
+            e.printStackTrace();
+            return XmlUtils.errorMessage(errorMsg);
+        }
+    }
 }

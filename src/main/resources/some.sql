@@ -31,3 +31,53 @@ CREATE INDEX TEST_NO
 ALTER TABLE LIS_REPORT
   ADD CONSTRAINT ID PRIMARY KEY (ID);
 
+CREATE TABLE
+  t_mnis_his_dict
+(
+  col_id        NUMBER,
+  col_name      VARCHAR2(256),
+  col_code      NUMBER,
+  col_type      NUMBER,
+  col_user      VARCHAR2(128),
+  col_date_time DATE,
+  CONSTRAINT col_id PRIMARY KEY (col_id)
+);
+
+CREATE TABLE
+  MNIS_VITAL_SIGN
+(
+  col_id                NUMBER,
+  patient_id            VARCHAR2(256) NOT NULL,
+  series                VARCHAR2(64)  NOT NULL,
+  admission_id          VARCHAR2(256),
+  dept_code             VARCHAR2(256) NOT NULL,
+  ward_code             VARCHAR2(256) NOT NULL,
+  bed_no                VARCHAR2(64),
+  patient_name          VARCHAR2(256),
+  sex_code              VARCHAR2(8),
+  age_year              VARCHAR2(8),
+  age_month             VARCHAR2(8),
+  disease_diagnose_name VARCHAR2(512),
+  in_hos_time           DATE,
+  real_in_hos_time      NUMBER,
+  after_operation_time  NUMBER,
+  plan_time             DATE,
+  record_time           DATE,
+  breathe_frequency     VARCHAR2(64),
+  pulse                 VARCHAR2(64),
+  pacer_heart_rate      VARCHAR2(64),
+  temperature           VARCHAR2(64),
+  systolic_pressure     VARCHAR2(64),
+  diastolic_pressure    VARCHAR2(64),
+  weight                VARCHAR2(64),
+  girth_of_paunch       VARCHAR2(64),
+  is_ventilator         VARCHAR2(1),
+  observe_name          VARCHAR2(512),
+  observe_code          VARCHAR2(64),
+  observe_val           VARCHAR2(64),
+  remark                VARCHAR2(512),
+  record_nurse_name     VARCHAR2(256),
+  nurse_record_time     DATE,
+  update_time           DATE,
+  PRIMARY KEY (col_id)
+)

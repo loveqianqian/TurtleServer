@@ -110,10 +110,10 @@ public interface IMnisAgent {
     /**
      * 通过参数回写体征信息
      *
-     * @param params HashMap
+     * @param params ArrayList
      * @return boolean
      */
-    boolean writeBackSign(Map<String, Object> params);
+    int writeBackSign(List<Map<String, Object>> params);
 
     /**
      * 通过参数获取Lis信息
@@ -138,5 +138,66 @@ public interface IMnisAgent {
      * @return ArrayList
      */
     List<Map<String, Object>> getBloodRecInfo(Map<String, Object> params);
+
+    /**
+     * 返回检验信息
+     * 根据test_no，修改LAB_TEST_MASTER
+     *
+     * @param params patient_id
+     *               series
+     *               admission_id
+     *               dept_code
+     *               ward_code
+     *               test_no
+     *               record_nurse
+     *               start_time
+     *               end_time
+     *               user_id
+     *               update_time
+     *               action_type
+     * @return 0:no data 1:some exception
+     */
+    int receiveLisInfo(Map<String, Object> params);
+
+    /**
+     * 获取检查报告
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getExamInfo(Map<String, Object> params);
+
+    /**
+     * 获取检验报告
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getLisReportInfoSample(Map<String, Object> params);
+
+    /**
+     * 获取检验详细报告
+     *
+     * @param params HashMap
+     * @return ArrayList
+     */
+    List<Map<String, Object>> getLisReportInfo(Map<String, Object> params);
+
+    /**
+     * 获取在院婴儿信息
+     *
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getBabyInfoIn(Map<String, Object> params);
+
+    /**
+     * 获取出院婴儿信息
+     *
+     * @param params
+     * @return
+     */
+    List<Map<String, Object>> getBabyInfoOut(Map<String, Object> params);
+
 
 }

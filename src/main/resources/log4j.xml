@@ -18,7 +18,7 @@
     <appender class="org.apache.log4j.RollingFileAppender" name="file">
         <param name="File" value="c:/logs/turtle.log"/>
         <param name="MaxFileSize" value="102400KB"/>
-        <param name="MaxBackupIndex" value="20"/>
+        <param name="MaxBackupIndex" value="100"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p [%t] %-17c{2} (%13F:%L) %3x - %m%n"/>
         </layout>

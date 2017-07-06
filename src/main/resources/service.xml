@@ -15,25 +15,25 @@
 
     <context:annotation-config/>
     <context:component-scan base-package="com.heren.turtle.server.service"/>
+    <bean id="clientCallBackHandler" class="com.heren.turtle.server.core.ClientCallBackHandler"/>
 
     <jaxws:endpoint implementor="#oaWebService" address="/oaWebService"/>
     <jaxws:endpoint implementor="#mnisWebService" address="/mnisWebService">
-        <jaxws:outInterceptors>
-            <bean class="org.apache.cxf.binding.soap.saaj.SAAJOutInterceptor"/>
-            <bean class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
-                <constructor-arg>
-                    <map>
-                        <entry key="action" value="UsernameToken"/>
-                        <entry key="user" value="mnis"/>
-                        <entry key="passwordType" value="PasswordText"/>
-                        <entry key="passwordCallbackRef">
-                            <!-- 回调函数引用 -->
-                            <ref bean="myPasswordCallback"/>
-                        </entry>
-                    </map>
-                </constructor-arg>
-            </bean>
-        </jaxws:outInterceptors>
+        <!--<jaxws:inInterceptors>-->
+        <!--<bean class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">-->
+        <!--<constructor-arg>-->
+        <!--<map>-->
+        <!--<entry key="action" value="UsernameToken"/>-->
+        <!--<entry key="user" value="mnis"/>-->
+        <!--<entry key="passwordType" value="PasswordText"/>-->
+        <!--<entry key="passwordCallbackRef">-->
+        <!--<ref bean="clientCallBackHandler"/>-->
+        <!--</entry>-->
+        <!--</map>-->
+        <!--</constructor-arg>-->
+        <!--</bean>-->
+        <!--<bean class="org.apache.cxf.binding.soap.saaj.SAAJOutInterceptor"/>-->
+        <!--</jaxws:inInterceptors>-->
     </jaxws:endpoint>
     <jaxws:endpoint implementor="#niWebService" address="/niWebService"/>
     <jaxws:endpoint implementor="#lisWebService" address="/lisWebService"/>
