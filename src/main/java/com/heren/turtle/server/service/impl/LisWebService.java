@@ -23,6 +23,8 @@ import com.heren.turtle.server.service.OAService;
 import com.heren.turtle.server.service.Summoner;
 import com.heren.turtle.server.utils.BooleanUtils;
 import com.heren.turtle.server.utils.XmlUtils;
+import org.apache.cxf.interceptor.InInterceptors;
+import org.apache.cxf.interceptor.OutInterceptors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -53,13 +55,9 @@ public class LisWebService extends Summoner implements LisService {
             if (XmlUtils.isXml(message)) {
                 Map<String, Object> params = XmlUtils.getMessage(message);
                 Map<String, Object> queryMap;
-                if (BooleanUtils.putMapBoolean(params, "test_no")
-                        && BooleanUtils.putMapBoolean(params, "patient_id")
-                        && BooleanUtils.putMapBoolean(params, "visit_id")) {
+                if (BooleanUtils.putMapBoolean(params, "test_no")) {
                     queryMap = BooleanUtils.putMapBooleanList(params,
-                            "test_no",
-                            "patient_id",
-                            "visit_id");
+                            "test_no");
                 } else {
                     throw new LackElementException("can't be without the key of the parameters");
                 }
@@ -73,7 +71,7 @@ public class LisWebService extends Summoner implements LisService {
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
             }
         } catch (Exception e) {
-            this.logger.error("exception:" + e.getMessage());
+            this.logger.error("exception:" + e.getCause());
             return XmlUtils.errorMessage(e.getMessage());
         }
     }
@@ -104,7 +102,7 @@ public class LisWebService extends Summoner implements LisService {
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
             }
         } catch (Exception e) {
-            this.logger.error("exception:" + e.getMessage());
+            this.logger.error("exception:" + e.getCause());
             return XmlUtils.errorMessage(e.getMessage());
         }
     }
@@ -136,7 +134,7 @@ public class LisWebService extends Summoner implements LisService {
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
             }
         } catch (Exception e) {
-            this.logger.error("exception:" + e.getMessage());
+            this.logger.error("exception:" + e.getCause());
             return XmlUtils.errorMessage(e.getMessage());
         }
     }
@@ -163,7 +161,7 @@ public class LisWebService extends Summoner implements LisService {
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
             }
         } catch (Exception e) {
-            this.logger.error("exception:" + e.getMessage());
+            this.logger.error("exception:" + e.getCause());
             return XmlUtils.errorMessage(e.getMessage());
         }
     }
@@ -209,7 +207,7 @@ public class LisWebService extends Summoner implements LisService {
                 return XmlUtils.errorMessage(MessageConstant.formatFailed);
             }
         } catch (Exception e) {
-            this.logger.error("exception:" + e.getMessage());
+            this.logger.error("exception:" + e.getCause());
             return XmlUtils.errorMessage(e.getMessage());
         }
     }

@@ -93,12 +93,12 @@
             AND pih.visit_id = do.visit_id
             AND pmi.patient_id = do.patient_id
             AND bos.apply_num = ba.apply_num
-            AND ba.apply_num = bm.apply_num
             AND bc.apply_num = ba.apply_num
             AND br.apply_num = ba.apply_num
-            AND bm.blood_id = bos.blood_id
-            AND br.blood_id = bm.blood_id
-            AND bos.match_sheet_num = bm.match_sheet_num
+            AND br.blood_id = bos.blood_id
+            AND br.apply_num = bm.apply_num(+)
+            AND br.blood_id = bm.blood_id(+)
+            AND br.match_sheet_num = bm.match_sheet_num(+)
         </where>
     </select>
 

@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!--
-  ~ /*
-  ~  *****************************************************************************
-  ~  * Copyright ( c ) 2016 Heren Tianjin Inc. All Rights Reserved.
-  ~  *
-  ~  * This software is the confidential and proprietary information of Heren Tianjin Inc
-  ~  * ("Confidential Information").  You shall not disclose such Confidential Information
-  ~  *  and shall use it only in accordance with the terms of the license agreement
-  ~  *  you entered into with Heren Tianjin or a Heren Tianjin authorized
-  ~  *  reseller (the "License Agreement").
-  ~  ****************************************************************************
-  ~  */
-  -->
-
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -154,21 +139,22 @@
         (select dd.dept_name
         from COMM.dept_vs_ward dvw, COMM.dept_dict dd
         where dd.dept_code = dvw.ward_code
-        and t.dept_transfered_to = dvw.dept_code) as turn_in_ward_name
+        and t.dept_transfered_to = dvw.dept_code) as turn_in_ward_name,
+        t.ADMISSION_DATE_TIME as turn_in_time
         from MEDREC.transfer t
         <where>
-            and t.dept_transfered_to is not null
             <if test="outStartTime!=null">
-                and t.admission_date_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
+                and t.discharge_date_time>=to_date(#{outStartTime,jdbcType=VARCHAR},'yyyy-MM-dd')
             </if>
             <if test="outEndTime!=null">
-                <![CDATA[ and t.admission_date_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
+                <![CDATA[ and t.discharge_date_time<to_date(#{outEndTime,jdbcType=VARCHAR},'yyyy-MM-dd')]]>
             </if>
             <if test="patientId!=null">
                 and t.patient_id=#{patientId,jdbcType=VARCHAR}
             </if>
             <if test="turnOutWardCode!=null">
-                and t.dept_stayed in (select de.dept_code from dept_vs_ward de where
+                and t.dept_stayed in (select de.dept_code
+                from dept_vs_ward de where
                 de.ward_code=#{turnOutWardCode,jdbcType=VARCHAR})
             </if>
             <if test="series!=null">
@@ -180,10 +166,16 @@
     <select id="queryTransBed" resultMap="transferMapper" parameterType="java.util.Map">
         select al.patient_id,
         al.visit_id as series,
-        (select pmi.inp_no from MEDREC.pat_master_index pmi where pmi.patient_id = al.PATIENT_ID) as admission_id,
-        (select dd.dept_name from comm.dept_dict dd where al.ward_code = dd.dept_code) as turn_in_ward_name,
+        (select pmi.inp_no
+        from MEDREC.pat_master_index pmi
+        where pmi.patient_id = al.PATIENT_ID) as admission_id,
+        (select dd.dept_name
+        from comm.dept_dict dd
+        where al.ward_code = dd.dept_code) as turn_in_ward_name,
         al.ward_code as turn_in_ward_code,
-        (select dd.dept_name from comm.dept_dict dd where dd.dept_code = al.DEPT_CODE) as turn_in_dept_name,
+        (select dd.dept_name
+        from comm.dept_dict dd
+        where dd.dept_code = al.DEPT_CODE) as turn_in_dept_name,
         al.DEPT_CODE as turn_in_dept_code,
         al.log_date_time as turn_in_time,
         al.bed_label as turn_in_bed_no

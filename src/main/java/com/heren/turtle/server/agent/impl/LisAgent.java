@@ -77,7 +77,8 @@ public class LisAgent implements ILisAgent {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("price", ConversionUtils.isNullValue(changeMap.get("price"), transUtils));
         resultMap.put("charges", ConversionUtils.isNullValue(changeMap.get("charges"), transUtils));
-        resultMap.put("execStat", ConversionUtils.isNullValue(changeMap.get("execStat"), transUtils));
+        resultMap.put("result", ConversionUtils.isNullValue(changeMap.get("execStat"), transUtils));
+        resultMap.put("result_text", "");
         return resultMap;
     }
 
@@ -88,7 +89,8 @@ public class LisAgent implements ILisAgent {
         hisLisDao.modifyMicrobeCharge(changeMap);
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("charges", ConversionUtils.isNullValue(changeMap.get("charges"), transUtils));
-        resultMap.put("execStat", ConversionUtils.isNullValue(changeMap.get("execStat"), transUtils));
+        resultMap.put("result", ConversionUtils.isNullValue(changeMap.get("execStat"), transUtils));
+        resultMap.put("result_text", "");
         return resultMap;
     }
 
@@ -98,7 +100,10 @@ public class LisAgent implements ILisAgent {
         Map<String, Object> changeMap = transUtils.U2I(params);
         hisLisDao.modifyStatus(changeMap);
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("ret", ConversionUtils.isNullValue(changeMap.get("ret"), transUtils));
+        Object ret = ConversionUtils.isNullValue(changeMap.get("ret"), transUtils);
+        resultMap.put("ret", ret);
+        resultMap.put("result_text", "");
+        resultMap.put("result", ret);
         return resultMap;
     }
 
@@ -106,10 +111,22 @@ public class LisAgent implements ILisAgent {
     public Map<String, Object> lisReport(Map<String, Object> params, String message) throws Exception {
         params.keySet().forEach(key -> logger.info("lis lisReport params:" + key + ":" + params.get(key)));
         Map<String, Object> changeMap = transUtils.U2I(params);
+        changeMap.keySet().forEach(key -> {
+            String value = String.valueOf(changeMap.get(key));
+            if (value.contains("&lt;")) {
+                changeMap.put(key, value.replace("&lt;", "<"));
+            }else if(value.contains("&gt;")){
+                changeMap.put(key, value.replace("&gt;", ">"));
+            }else if(value.contains("&amp;")){
+                changeMap.put(key, value.replace("&amp;", "&"));
+            }
+        });
         hisLisDao.modifyReport(changeMap);
         Map<String, Object> resultMap = new HashMap<>();
         String ret = String.valueOf(ConversionUtils.isNullValue(changeMap.get("ret"), transUtils));
         resultMap.put("ret", ret);
+        resultMap.put("result", ret);
+        resultMap.put("result_text", "");
         if (ret.equals("0")) {
             Integer queryInt = turtleLisDao.queryInt(params);
             if (queryInt > 0) {

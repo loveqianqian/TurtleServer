@@ -64,6 +64,7 @@
         <result column="PATIENT_CONDITION" property="patient_condition"/>
         <result column="TOTAL_CHARGES" property="total_charges"/>
         <result column="drug_spec" property="drug_spec"/>
+        <result column="baby_no" property="baby_no"/>
     </resultMap>
 
     <select id="queryOrders" parameterType="java.util.Map" resultMap="orderMapper">
@@ -93,7 +94,8 @@
         im.STOP_TIME,
         im.DOCTOR_NAME,
         im.STOP_DOCTOR_NAME,
-        im.drug_spec
+        im.drug_spec,
+        im.baby_no
         from ip_mnis_order_view im
         INNER JOIN pats_in_hospital pi
         on (pi.patient_id=im.PATIENT_ID
@@ -167,7 +169,8 @@
         im.STOP_TIME,
         im.DOCTOR_NAME,
         im.STOP_DOCTOR_NAME,
-        im.drug_spec
+        im.drug_spec,
+        im.baby_no
         from ip_mnis_drug_order_view im
         INNER JOIN pats_in_hospital pi
         on (pi.patient_id=im.PATIENT_ID
@@ -186,7 +189,7 @@
             and im.ORDER_STATUS='2'
             --and (im.supply_name like '%输液%' or im.supply_name like '%注射%')
             AND im.supply_code in
-            ('P1','X5','BA','BB','BC','H2','H3','H4','I2','F7','J8','J9','L2','L3','L5','L6','L7','M4','M5','M6','M7','N1','O2','O5','A2','F4','A4','B1','B2','B3','B4','B5','F1','F2','F5','F6','K8','F3','A3','D4','O7','X3','X7','O8','F8')
+            ('P1','X5','BA','BB','BC','C4','H2','H3','H4','I2','F7','J8','J9','L2','L3','L5','L6','L7','M4','M5','M6','M7','N1','O2','O5','A2','F4','A4','B1','B2','B3','B4','B5','F1','F2','F5','F6','K8','F3','A3','D4','O7','X3','X7','O8','F8')
         </where>
     </select>
 

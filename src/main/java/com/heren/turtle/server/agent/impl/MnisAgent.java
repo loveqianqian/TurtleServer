@@ -261,7 +261,6 @@ public class MnisAgent implements IMnisAgent {
             resultMap.keySet().forEach(key ->
                     resultMap.put(key, ConversionUtils.isNullValue(resultMap.get(key), transUtils)));
             resultMap.put("turn_in_bed_no", "nullValue");
-            resultMap.put("turn_in_time", "nullValue");
             resultMap.put("actionType", "nullValue");
             resultList.add(resultMap);
         }
