@@ -17,7 +17,7 @@
         <cxf.version>2.7.18</cxf.version>
         <jackson.version>2.4.6</jackson.version>
         <fastjson-version>1.2.7</fastjson-version>
-        <kotlin.version>1.0.6</kotlin.version>
+        <kotlin.version>1.1.51</kotlin.version>
     </properties>
 
     <dependencies>
