@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="Oracle - orcl@localhost" uuid="009adf88-f08b-45b3-b85c-e3faba52d420">
+      <driver-ref>oracle</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>oracle.jdbc.OracleDriver</jdbc-driver>
+      <jdbc-url>jdbc:oracle:thin:@//localhost:1521/orcl</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="Oracle - wzxdb@192.168.8.43" uuid="2e7dc083-a75f-4fc4-8323-b9c6b98f6aca">
+      <driver-ref>oracle</driver-ref>
+      <synchronize>true</synchronize>
+      <auto-commit>false</auto-commit>
+      <jdbc-driver>oracle.jdbc.OracleDriver</jdbc-driver>
+      <jdbc-url>jdbc:oracle:thin:@//192.168.8.43:1521/wzxdb</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="Oracle - wzxdb@220.113.132.136" uuid="3025da8a-ea13-451a-9452-f1e70a6aa179">
+      <driver-ref>oracle</driver-ref>
+      <auto-commit>false</auto-commit>
+      <jdbc-driver>oracle.jdbc.OracleDriver</jdbc-driver>
+      <jdbc-url>jdbc:oracle:thin:@//220.113.132.136:62894/wzxdb</jdbc-url>
+    </data-source>
+  </component>
+</project>
